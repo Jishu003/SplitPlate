@@ -18,7 +18,7 @@ in Bengaluru. The startup was founded in August 2014 by Sriharsha Majety, Nandan
 Rahul Jaimini and started its operations in Bengaluru as a food delivery service. The company
 currently has operations in over 700 cities across India and is also running quick commerce grocery
 delivery service, Instamart, in over 100 cities. In November 2024, Swiggy went public with an initial
-valuation of $11.3 billion. The initial listing price for Swiggy was Rs. 4800 crore, which represents a
+valuation of $11.3 billion. The initial listing price for Swiggy was Rs. 4,800 crore, which represents a
 rough valuation of $11.3 billion. Swiggy also offers Dineout (restaurant bookings) and SteppinOut
 (event bookings) in addition to food delivery and Instamart. Swiggy, which had earlier launched its
 parcel delivery service (Genie), discontinued the same in May 2025 as it concentrated on its two
