@@ -4,7 +4,7 @@ PROPOSED DIGITAL EXTENSIONS:
 SplitPlate (group order & bill-split with calorie tracker) and a dineout vibe checker
 COURSE: Digital Business Systems - ECD223-3
 
-SUBMITTED TO:
+SUBMITTED TO:-
 Dr. Chandravesh Chaudhari
 SUBMITTED BY:
 Aanya Agarwal - 2533301
