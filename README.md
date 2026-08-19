@@ -3,6 +3,7 @@ SWIGGY
 PROPOSED DIGITAL EXTENSIONS:
 SplitPlate (group order & bill-split with calorie tracker) and a dineout vibe checker
 COURSE: Digital Business Systems - ECD223-3
+
 SUBMITTED TO:
 Dr. Chandravesh Chaudhari
 SUBMITTED BY:
