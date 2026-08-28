@@ -286,61 +286,8 @@ platforms, without requiring major infrastructure changes. Through the usage of 
 solve problems customers face in the real world, Swiggy can strengthen customer loyalty, increase
 engagement, and differentiate itself in India's highly competitive food delivery market.
 
-
-flowchart TB
-
-    SWIGGY["SWIGGY DIGITAL BUSINESS SYSTEM"]
-
-    SWIGGY --> CUSTOMER
-    SWIGGY --> RESTAURANT
-    SWIGGY --> VIBE
-
-    %% CUSTOMER BRANCH
-    subgraph CUSTOMER["CUSTOMER"]
-        C1["Swiggy App"]
-        C2["SplitPlate"]
-        C3["Calorie Tracker"]
-        C1 --> C2
-        C2 --> C3
-    end
-
-    %% RESTAURANT BRANCH
-    subgraph RESTAURANT["RESTAURANT PARTNER"]
-        R1["Restaurant Dashboard"]
-        R2["Menu & Availability"]
-        R3["Dineout Listing"]
-        R1 --> R2
-        R1 --> R3
-    end
-
-    %% VIBE CHECKER BRANCH
-    subgraph VIBE["VIBE CHECKER"]
-        V1["Vibe Checker App"]
-        V2["Crowd Level"]
-        V3["Ambience"]
-        V1 --> V2
-        V1 --> V3
-    end
-
-    %% CENTRAL SYSTEM
-    C2 --> CORE
-    R2 --> CORE
-    R3 --> CORE
-    V2 --> CORE
-    V3 --> CORE
-
-    CORE["SWIGGY CORE PLATFORM"]
-
-    CORE --> TPS["Transaction Processing System"]
-    CORE --> PAY["UPI / Payment Gateway"]
-    CORE --> DB["Central Database"]
-
-    DB --> MIS["MIS"]
-    DB --> DSS["DSS"]
-
-    MIS --> CORE
-    DSS --> CORE
-
+**Architecture Code**
+<img width="1676" height="806" alt="image" src="https://github.com/user-attachments/assets/76815f76-272a-4d5d-9c92-07bceae71e7d" />
     
 **References**
 
