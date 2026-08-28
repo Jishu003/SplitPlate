@@ -1,19 +1,18 @@
-A DIGITAL BUSINESS ANALYSIS AND PROBLEM-SOLVING CASE STUDY OF
-SWIGGY
-PROPOSED DIGITAL EXTENSIONS:
-SplitPlate (group order & bill-split with calorie tracker) and a dineout vibe checker
-COURSE: Digital Business Systems - ECD223-3
+**A DIGITAL BUSINESS ANALYSIS AND PROBLEM-SOLVING CASE STUDY OF
+SWIGGY**
 
-SUBMITTED TO:-
-Dr. Chandravesh Chaudhari
-SUBMITTED BY:
+**SplitPlate (group order & bill-split with calorie tracker) and a dineout vibe checker**
+
+ BY:
 Aanya Agarwal - 2533301
 Agastya Pallavi Shethia - 2533304
 Akankshya Pradhan - 2533305
 Upanshu Sil - 2533358
 Vibhi Maheshwari - 2533361
-1. Organization Overview
-1.1 Nature of Business
+
+**1. Organization Overview**
+
+**1.1 Nature of Business**
 Swiggy is one of India's leading hyperlocal, on-demand digital commerce companies, headquartered
 in Bengaluru. The startup was founded in August 2014 by Sriharsha Majety, Nandan Reddy and
 Rahul Jaimini and started its operations in Bengaluru as a food delivery service. The company
@@ -27,7 +26,7 @@ main segments—food delivery and restaurant table booking. This report Centre I
 Swiggy's main verticals – food delivery and Dineout – as the three digital solutions that the group
 offers – SplitPlate, embedded calorie tracker, and Dineout Vibe Checker (detailed in Section 6) – are
 squarely in the food ordering and restaurant discovery experience.
-1.2 Business Model
+**1.2 Business Model**
 Swiggy is a multi-sided (marketplace) platform that brings together both customers and restaurant
 partners (including delivery partners (gig workers)) without producing or selling any food. It makes
 money because it helps these groups to transact with each other. It generates its main revenues from:
@@ -51,7 +50,7 @@ levers for its profitability. With that type of asset light business, profitabil
 as well as repeat use — something our features would help with, whether it's making a group order
 frictionless (SplitPlate) or helping guests determine if the restaurant's vibe and crowd is what they're
 looking for (the Vibe Checker).
-1.3 Digital Business Ecosystem
+**1.3 Digital Business Ecosystem**
 Each of these systems is interconnected and must synchronize in close real-time to complete an
 order. These are all interdependent systems, from the customer facing side, to the partner facing side,
 to the backend systems that must synchronize – almost in real-time – to complete an order. This
@@ -67,7 +66,7 @@ sitting between the customer app and payment gateway, creating multiple individu
 requests as opposed to one individual payment, and the Vibe Checker sitting between each Dineout
 partner restaurant and the customer app, pushing live crowd and ambience updates directly into the
 listing of each restaurant.
-1.4 Target Customers
+**1.4 Target Customers**
 Swiggy's customer base spans over 100 million registered users across more than 700 cities, but
 several segments are especially relevant to the two features this group has chosen to design:
 Working professionals and students living in cities who order food often and regularly use
@@ -82,8 +81,10 @@ platform rather than paying for an order one at a time.
 Vibe Checker's live updates benefit directly socially-driven diners who are as interested in a
 restaurant's atmosphere as its food, which is a population that is definitely part of Gen Z and
 currently has no way to determine the vibe or crowd at a restaurant before they book.
-2. Information and Decision-Making
-2.1 Data, Information, Knowledge
+
+**2. Information and Decision-Making**
+
+**2.1 Data, Information, Knowledge**
 It can be understood through the lens of data, information and knowledge as each of these factors
 provides its context and helps Swiggy transform the raw data into effective data that help them make
 good business decisions.
