@@ -1,3 +1,5 @@
+<img width="936" height="524" alt="image" src="https://github.com/user-attachments/assets/d8c101f6-4a46-478b-8979-e738b70b9808" />
+
 **A DIGITAL BUSINESS ANALYSIS AND PROBLEM-SOLVING CASE STUDY OF
 SWIGGY**
 
