@@ -1,6 +1,6 @@
 # SplitPlate — System Architecture
 
-> **Version:** 1.0.0 | **Last updated:** August 2025 | **Authors:** Jishu, Aanya, Akankshya, Vibhi, Agastya
+> **Version:** 1.0.0 | **Last updated:** August 2025 | **Authors:** Upanshu, Aanya, Akankshya, Vibhi, Agastya
 
 ---
 
