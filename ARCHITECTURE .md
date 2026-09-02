@@ -1,6 +1,6 @@
 # SplitPlate — System Architecture
 
-> **Version:** 1.0.0 | **Last updated:** August 2025 | **Authors:** Jishu, Anya, Akankshya
+> **Version:** 1.0.0 | **Last updated:** August 2025 | **Authors:** Jishu, Aanya, Akankshya, Vibhi, Agastya
 
 ---
 
@@ -73,10 +73,10 @@ Admin-level analytics across the entire platform. Login: password `splitplate202
 Firestore (default)
 │
 └── users/                              ← Collection
-    └── {emailKey}/                     ← Document (e.g. jishu_at_gmail_com)
-        ├── uid:          "jishu_at_gmail_com"
-        ├── name:         "Jishu"
-        ├── email:        "jishu@gmail.com"
+    └── {emailKey}/                     ← Document (e.g. anya@gmail.com)
+        ├── uid:          "anya@gmail.com"
+        ├── name:         "anyea"
+        ├── email:        "anya@gmail.com"
         ├── password:     "pass123"          ← Plain text (demo only)
         ├── createdAt:    "2025-08-01T..."
         ├── lastLogin:    "2025-08-12T..."
