@@ -1,0 +1,3934 @@
+<!DOCTYPE html>
+<html lang="en" style="background:#07070f;color:#fff;">
+<head>
+<meta charset="UTF-8">
+<title>SplitPlate — Group Order, Sorted</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07070f;
+    --panel:rgba(255,255,255,0.06);
+    --ink:#ffffff;
+    --ink-dim:rgba(255,255,255,0.7);
+    --orange:#FF6A2B;
+    --orange-deep:#ff8c5a;
+    --orange-glow:rgba(255,106,43,0.35);
+    --green:#34d399;
+    --green-glow:rgba(52,211,153,0.3);
+    --yellow:#fbbf24;
+    --red:#f87171;
+    --red-glow:rgba(248,113,113,0.3);
+    --line:rgba(255,255,255,0.08);
+    --line-bright:rgba(255,255,255,0.15);
+    --muted:rgba(255,255,255,0.45);
+    --glass:rgba(255,255,255,0.07);
+    --glass-border:rgba(255,255,255,0.12);
+    --glass-shine:rgba(255,255,255,0.18);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  /* animated dark mesh background */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:-2;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%,rgba(255,106,43,0.15) 0%,transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%,rgba(139,92,246,0.12) 0%,transparent 60%),
+      #07070f;
+  }
+  body::after{
+    content:'';position:fixed;inset:0;z-index:-1;
+    background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);
+    background-size:60px 60px;
+    mask-image:radial-gradient(ellipse at center,black 40%,transparent 80%);
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:24px 20px 80px;}
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:14px;padding:14px 20px;margin-bottom:24px;flex-wrap:wrap;
+    background:rgba(255,255,255,0.04);
+    backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+    border:1px solid rgba(255,255,255,0.1);border-radius:16px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .brand{display:flex;flex-direction:column;}
+  .brand .mark{
+    font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:28px;
+    letter-spacing:-0.5px;color:#fff;text-shadow:0 0 30px rgba(255,106,43,0.4);
+  }
+  .brand .mark span{
+    background:linear-gradient(135deg,#FF6A2B,#ff9a6c);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .brand .tag{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:0.4px;}
+  .totals-strip{display:flex;gap:20px;}
+  .tstat{text-align:right;}
+  .tstat .num{
+    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;
+    background:linear-gradient(135deg,#FF6A2B,#ffa07a);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .tstat .lab{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);}
+
+  .organizer-bar{
+    background:rgba(20,18,35,0.9);border:1px solid rgba(255,255,255,0.1);
+    color:#fff;border-radius:14px;padding:16px 20px;margin-bottom:20px;
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    backdrop-filter:blur(12px);
+  }
+  .organizer-bar.settled{
+    background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.3);
+  }
+  .ob-left{display:flex;flex-direction:column;}
+  .ob-title{font-size:15px;font-weight:700;color:#fff;}
+  .ob-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .ob-btn{
+    background:linear-gradient(135deg,#FF6A2B,#e8521a);color:#fff;border:none;
+    padding:10px 18px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;
+    box-shadow:0 4px 16px rgba(255,106,43,0.4);transition:all .2s;
+  }
+  .ob-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,106,43,0.55);}
+  .ob-done-tag{font-size:13px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:6px;}
+
+  .cal-strip{
+    background:rgba(15,13,26,0.85);border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px;padding:14px 16px;margin-bottom:22px;
+  }
+  .cal-strip-head{font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:10px;}
+  .cal-strip-row{display:flex;gap:12px;flex-wrap:wrap;}
+  .cal-chip{flex:1 1 140px;min-width:140px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,0.04);}
+  .cal-chip-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .cal-chip-name{font-weight:700;font-size:13px;color:#fff;}
+  .cal-chip-num{font-weight:700;font-size:15px;}
+  .cal-chip-num.green{color:var(--green);}
+  .cal-chip-num.yellow{color:var(--yellow);}
+  .cal-chip-num.red{color:var(--red);}
+  .cal-chip-track{height:4px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;}
+  .cal-chip-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+  .cal-chip-fill.green{background:var(--green);}
+  .cal-chip-fill.yellow{background:var(--yellow);}
+  .cal-chip-fill.red{background:var(--red);}
+  .cal-chip-empty{font-size:11px;color:var(--muted);text-align:center;width:100%;padding:6px 0;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:760px){.grid{grid-template-columns:1fr;}}
+
+  .panel{
+    background:rgba(15,13,26,0.9);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:18px;
+    padding:22px;
+    color:#fff;
+    box-shadow:0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    position:relative;overflow:hidden;
+  }
+  .panel h2{
+    font-size:15px;font-weight:700;
+    margin:0 0 16px;
+    display:flex;align-items:center;gap:8px;
+    color:rgba(255,255,255,0.9);
+  }
+  .panel h2 .pill{
+    font-size:10px;
+    background:linear-gradient(135deg,#FF6A2B,#e8521a);
+    color:#fff;
+    padding:2px 8px;
+    border-radius:20px;
+    font-family:'Segoe UI',sans-serif;
+    letter-spacing:0.4px;
+  }
+
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);margin-bottom:4px;margin-top:12px;}
+  label:first-of-type{margin-top:0;}
+  select, input[type=text], input[type=number], input[type=email], input[type=password]{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px;
+    font-size:14px;
+    background:rgba(255,255,255,0.08);
+    color:#fff !important;
+    box-sizing:border-box;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  select option{background:#1a1220;color:#fff;}
+  select:focus, input:focus{
+    outline:none;
+    border-color:rgba(255,106,43,0.6);
+    box-shadow:0 0 0 3px rgba(255,106,43,0.12);
+  }
+  input::placeholder{color:rgba(255,255,255,0.3) !important;}
+  /* email input in add-person specifically needs dark text since it has native autocomplete */
+  #newPersonEmail{
+    background:rgba(255,255,255,0.95) !important;
+    color:#1a1a2e !important;
+    border-color:rgba(255,255,255,0.3);
+  }
+  #newPersonEmail::placeholder{color:rgba(0,0,0,0.35) !important;}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  .menu-list{margin-top:14px;max-height:170px;overflow-y:auto;border-top:1px dashed var(--line);padding-top:10px;}
+  .menu-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:7px 4px;font-size:13px;cursor:pointer;border-radius:6px;
+  }
+  .menu-item:hover{background:#FFF1E2;}
+  .menu-item .mname{font-weight:600;}
+  .menu-item .mmeta{color:var(--muted);font-size:11.5px;}
+
+  button.add-btn{
+    margin-top:16px;
+    width:100%;
+    background:var(--orange);
+    color:#fff;
+    border:none;
+    padding:11px;
+    border-radius:7px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    letter-spacing:0.2px;
+  }
+  button.add-btn:hover{background:var(--orange-deep);}
+  button.add-btn:disabled{background:#E8D9C8;cursor:not-allowed;}
+
+  .cart-line{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 6px;
+    border-bottom:1px solid rgba(255,255,255,0.07);
+    font-size:13px;
+  }
+  .cart-line:last-child{border-bottom:none;}
+  .cart-line-info{flex:1;min-width:0;}
+
+  /* ── Qty pill box ── */
+  .qty-pill{
+    display:inline-flex;align-items:stretch;
+    background:rgba(255,255,255,0.08);
+    border:1.5px solid rgba(255,255,255,0.18);
+    border-radius:10px;overflow:hidden;flex-shrink:0;
+  }
+  .qty-btn{
+    width:32px;height:32px;
+    border:none;background:transparent;color:#fff !important;
+    font-size:18px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s;flex-shrink:0;line-height:1;
+  }
+  .qty-btn:hover{background:rgba(255,106,43,0.3);}
+  .qty-btn:active{background:rgba(255,106,43,0.5);}
+  .qty-num{
+    min-width:32px;text-align:center;
+    font-weight:700;font-size:14px;color:#fff !important;
+    border-left:1.5px solid rgba(255,255,255,0.12);
+    border-right:1.5px solid rgba(255,255,255,0.12);
+    display:flex;align-items:center;justify-content:center;
+    padding:0 6px;
+  }
+  .cart-line .iname{
+    font-weight:600;
+    color:#fff !important;
+    font-size:13.5px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .cart-line .ifor{font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px;}
+  .cart-line .ical{color:#34d399;font-size:11px;}
+  .cart-line .iprice{
+    font-weight:700;color:#ff8c5a !important;
+    font-size:14px;flex-shrink:0;min-width:40px;text-align:right;
+  }
+  .cart-line .rm{
+    background:none;border:none;color:rgba(248,113,113,0.6) !important;
+    font-size:14px;cursor:pointer;padding:4px 6px;flex-shrink:0;
+    transition:color .15s;
+  }
+  .cart-line .rm:hover{color:#f87171 !important;}
+  .empty-note{
+    color:rgba(255,255,255,0.35);font-size:13px;
+    padding:24px 4px;text-align:center;
+  }
+
+  .fees{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--muted);}
+  .fees .frow{display:flex;justify-content:space-between;margin-bottom:4px;}
+
+  .section-title{
+    font-family:Georgia, serif;
+    font-size:20px;
+    margin:34px 0 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .section-title .num{
+    width:28px;height:28px;border-radius:50%;
+    background:linear-gradient(135deg,#FF6A2B,#e8521a);
+    color:#fff !important;
+    font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Inter',sans-serif;
+    box-shadow:0 0 14px rgba(255,106,43,0.5);
+    flex-shrink:0;
+  }
+
+  .people-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;}
+  .person-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .person-card.paid{border-color:var(--green);}
+  .person-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .pname{font-family:Georgia,serif;font-size:18px;font-weight:700;}
+  .status-tag{
+    font-size:10px;text-transform:uppercase;letter-spacing:0.5px;
+    padding:3px 8px;border-radius:20px;font-weight:700;
+  }
+  .status-tag.unpaid{background:#FCE9E9;color:var(--red);}
+  .status-tag.paid{background:#E6F4EA;color:var(--green);}
+
+  .pitems{margin:12px 0;font-size:12.5px;color:var(--muted);line-height:1.6;}
+  .pitems b{color:var(--ink);}
+
+  .pmoney{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
+  }
+  .pmoney .amt{font-family:Georgia,serif;font-size:24px;font-weight:700;}
+  .pmoney .amtlab{font-size:11px;color:var(--muted);text-transform:uppercase;}
+
+  .calbar-wrap{margin-top:12px;}
+  .calbar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .calbar-track{height:7px;background:#F0E6D8;border-radius:6px;overflow:hidden;}
+  .calbar-fill{height:100%;border-radius:6px;transition:width .4s ease;}
+  .calbar-fill.green{background:var(--green);}
+  .calbar-fill.yellow{background:var(--yellow);}
+  .calbar-fill.red{background:var(--red);}
+
+  .pay-btn{
+    margin-top:14px;width:100%;padding:9px;border-radius:7px;border:none;
+    font-weight:700;font-size:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+  }
+  .pay-btn.to-pay{background:var(--ink);color:#fff;}
+  .pay-btn.to-pay:hover{background:#000;}
+  .pay-btn.requested-btn{background:#FFF1E2;color:var(--orange-deep);cursor:default;}
+  .pay-btn.paid-btn{background:#E6F4EA;color:var(--green);cursor:default;}
+  .paid-time{font-size:10.5px;color:var(--muted);text-align:center;margin-top:5px;}
+
+  .dot-pulse{
+    width:7px;height:7px;border-radius:50%;background:var(--orange-deep);
+    animation:pulse 1s infinite ease-in-out;
+  }
+  @keyframes pulse{0%,100%{opacity:0.3;}50%{opacity:1;}}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(43,27,18,0.55);
+    display:flex;align-items:center;justify-content:center;
+    z-index:50;
+  }
+  .modal-box{
+    background:#fff;border-radius:14px;width:320px;padding:0;overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+  }
+  .modal-head{
+    background:var(--orange);color:#fff;padding:18px 20px;
+  }
+  .modal-head .mh-lab{font-size:11px;opacity:0.85;text-transform:uppercase;letter-spacing:0.5px;}
+  .modal-head .mh-amt{font-family:Georgia,serif;font-size:28px;font-weight:700;margin-top:2px;}
+  .modal-head .mh-to{font-size:12px;opacity:0.9;margin-top:4px;}
+  .modal-body{padding:18px 20px;}
+  .upi-opt{
+    display:flex;align-items:center;gap:10px;
+    border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+    margin-bottom:9px;cursor:pointer;font-size:13px;font-weight:600;
+  }
+  .upi-opt:hover{background:#FFF6EC;border-color:var(--orange);}
+  .upi-dot{width:22px;height:22px;border-radius:6px;flex-shrink:0;}
+  .upi-dot.gpay{background:#4285F4;}
+  .upi-dot.phonepe{background:#5F259F;}
+  .upi-dot.paytm{background:#00BAF2;}
+
+  .processing-view{text-align:center;padding:20px 10px;}
+  .spinner{
+    width:34px;height:34px;border-radius:50%;
+    border:3px solid #F0E6D8;border-top-color:var(--orange);
+    margin:0 auto 14px;animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .processing-view .pv-step{font-size:13px;color:var(--muted);margin-top:4px;}
+
+  .success-view{text-align:center;padding:24px 10px;}
+  .check-circle{
+    width:46px;height:46px;border-radius:50%;background:var(--green);
+    color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;
+    margin:0 auto 12px;
+  }
+  .success-view .sv-title{font-family:Georgia,serif;font-size:17px;font-weight:700;}
+  .success-view .sv-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+  .modal-close{
+    width:100%;margin-top:16px;padding:10px;border-radius:7px;border:none;
+    background:var(--ink);color:#fff;font-weight:700;cursor:pointer;font-size:13px;
+  }
+  .modal-cancel{
+    width:100%;margin-top:8px;padding:9px;border-radius:7px;border:1px solid var(--line);
+    background:none;color:var(--muted);font-weight:600;cursor:pointer;font-size:12.5px;
+  }
+
+  .paid-time{font-size:10.5px;color:var(--muted);text-align:center;margin-top:5px;}
+
+  /* ── Support Section ── */
+  .support-banner{
+    background:linear-gradient(135deg,#2B1B12 60%,#4A2E1A);
+    color:#fff;border-radius:12px;padding:20px 22px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .sb-left{display:flex;align-items:center;gap:14px;}
+  .sb-logo{
+    width:46px;height:46px;border-radius:12px;
+    background:var(--orange);display:flex;align-items:center;justify-content:center;
+    font-size:22px;flex-shrink:0;box-shadow:0 4px 12px rgba(255,106,43,0.4);
+  }
+  .sb-text .sb-title{font-family:Georgia,serif;font-size:16px;font-weight:700;}
+  .sb-text .sb-sub{font-size:12px;opacity:0.75;margin-top:2px;}
+  .sb-btns{display:flex;gap:10px;flex-wrap:wrap;}
+  .sb-btn{
+    padding:9px 16px;border-radius:7px;border:none;font-weight:700;
+    font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;
+  }
+  .sb-btn.ai{background:var(--orange);color:#fff;}
+  .sb-btn.ai:hover{background:var(--orange-deep);}
+  .sb-btn.human{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);}
+  .sb-btn.human:hover{background:rgba(255,255,255,0.2);}
+
+  /* chatbot panel */
+  .chat-panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    margin-top:12px;overflow:hidden;display:none;
+  }
+  .chat-panel.open{display:block;}
+  .chat-header{
+    background:var(--ink);color:#fff;padding:14px 18px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .chat-header-left{display:flex;align-items:center;gap:10px;}
+  .chat-logo{
+    width:32px;height:32px;border-radius:8px;background:var(--orange);
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .chat-title{font-weight:700;font-size:14px;}
+  .chat-sub{font-size:11px;opacity:0.7;margin-top:1px;}
+  .chat-close{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:0 4px;opacity:0.7;}
+  .chat-close:hover{opacity:1;}
+  .chat-msgs{height:260px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#FFFDF9;}
+  .msg{max-width:78%;padding:10px 13px;border-radius:10px;font-size:13px;line-height:1.5;}
+  .msg.bot{background:#F0E6D8;align-self:flex-start;border-bottom-left-radius:3px;}
+  .msg.user{background:var(--ink);color:#fff;align-self:flex-end;border-bottom-right-radius:3px;}
+  .msg.typing{background:#F0E6D8;align-self:flex-start;color:var(--muted);font-style:italic;}
+  .chat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);}
+  .chat-input{
+    flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:7px;
+    font-size:13px;background:#FFFDF9;color:var(--ink);
+  }
+  .chat-input:focus{outline:2px solid var(--orange);}
+  .chat-send{
+    background:var(--orange);color:#fff;border:none;padding:9px 14px;
+    border-radius:7px;cursor:pointer;font-weight:700;font-size:13px;
+  }
+  .chat-send:hover{background:var(--orange-deep);}
+  .chat-send:disabled{background:#E8D9C8;cursor:not-allowed;}
+
+  /* human help panel */
+  .human-panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    margin-top:12px;overflow:hidden;display:none;
+  }
+  .human-panel.open{display:block;}
+  .human-header{
+    background:#3A2A7A;color:#fff;padding:14px 18px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .human-header-left{display:flex;align-items:center;gap:10px;}
+  .human-logo{
+    width:32px;height:32px;border-radius:8px;background:#5F259F;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .human-body{padding:20px;}
+  .human-status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--green);font-weight:600;margin-bottom:14px;}
+  .green-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%,100%{opacity:0.4;}50%{opacity:1;}}
+  .human-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .human-opt{
+    border:1px solid var(--line);border-radius:8px;padding:14px;text-align:center;
+    cursor:pointer;font-size:13px;font-weight:600;
+  }
+  .human-opt:hover{background:#FFF6EC;border-color:var(--orange);}
+  .human-opt .hopt-icon{font-size:22px;margin-bottom:6px;}
+  .human-opt .hopt-label{font-size:12px;color:var(--muted);margin-top:2px;font-weight:400;}
+  .human-connecting{text-align:center;padding:20px;display:none;}
+  .human-connected{text-align:center;padding:20px;display:none;}
+
+  .no-people{color:var(--muted);font-size:14px;text-align:center;padding:30px;border:1px dashed var(--line);border-radius:10px;}
+  footer{margin-top:40px;text-align:center;font-size:11.5px;color:var(--muted);}
+
+  /* ── Bill Section ── */
+  /* ── Buffer Timer ── */
+  .buffer-box{
+    background:rgba(15,13,26,0.95);
+    border:2px solid var(--orange);border-radius:14px;
+    padding:22px 24px;position:relative;overflow:hidden;
+    box-shadow:0 0 30px rgba(255,106,43,0.1);
+  }
+  .buffer-box::before{
+    content:'';position:absolute;top:0;left:0;height:4px;
+    background:linear-gradient(90deg,var(--orange),#ff9a6c);
+    transition:width 1s linear;
+    width:var(--progress, 100%);
+  }
+  .buffer-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+  .buffer-left{display:flex;align-items:center;gap:14px;}
+  .buffer-icon{font-size:28px;}
+  .buffer-text .bt-title{font-family:'Playfair Display',Georgia,serif;font-size:17px;font-weight:700;color:#fff;}
+  .buffer-text .bt-sub{font-size:12.5px;color:rgba(255,255,255,0.5);margin-top:3px;}
+  .buffer-clock{
+    display:flex;align-items:center;gap:8px;
+  }
+  .clock-ring{
+    width:64px;height:64px;flex-shrink:0;
+  }
+  .clock-time{
+    font-family:Georgia,serif;font-size:26px;font-weight:700;
+    color:var(--orange-deep);min-width:52px;text-align:center;
+  }
+  .clock-time.urgent{color:var(--red);animation:urgentPulse .6s infinite;}
+  @keyframes urgentPulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+
+  .buffer-changes{
+    margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;
+  }
+  .bc-title{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);margin-bottom:8px;}
+  .bc-item{
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(255,106,43,0.08);border:1px solid rgba(255,106,43,0.2);border-radius:9px;
+    padding:9px 12px;margin-bottom:6px;font-size:13px;
+  }
+  .bc-item .bc-left{display:flex;align-items:center;gap:8px;}
+  .bc-item .bc-name{font-weight:600;color:#fff;}
+  .bc-item .bc-for{font-size:11px;color:rgba(255,255,255,0.45);}
+  .bc-item .bc-amt{color:#f87171;font-weight:700;}
+  .bc-item .bc-refund-btn{
+    background:var(--orange);color:#fff;border:none;padding:5px 10px;
+    border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;
+  }
+  .bc-item .bc-refund-btn:hover{background:var(--orange-deep);}
+  .bc-item .bc-refund-btn.done{background:rgba(52,211,153,0.15);color:#34d399;cursor:default;border:1px solid rgba(52,211,153,0.3);}
+  .bc-empty{font-size:12.5px;color:rgba(255,255,255,0.35);font-style:italic;}
+
+  .buffer-sure-btn{
+    margin-top:16px;width:100%;padding:13px;border-radius:12px;border:none;
+    background:linear-gradient(135deg,#FF6A2B,#e8521a);
+    color:#fff;font-weight:700;font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    box-shadow:0 4px 20px rgba(255,106,43,0.4);transition:all .2s;
+  }
+  .buffer-sure-btn:hover{transform:translateY(-1px);box-shadow:0 6px 26px rgba(255,106,43,0.55);}
+  .sure-badge{background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;font-size:11px;}
+
+  /* sent to restaurant state */
+  .order-sent-box{
+    background:linear-gradient(135deg,#1A3A2A,#2E8B57);
+    color:#fff;border-radius:14px;padding:22px 24px;
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  }
+  .os-icon{font-size:36px;}
+  .os-text .os-title{font-family:Georgia,serif;font-size:18px;font-weight:700;}
+  .os-text .os-sub{font-size:12.5px;opacity:0.8;margin-top:4px;}
+  .os-eta{
+    margin-left:auto;text-align:right;
+  }
+  .os-eta .eta-num{font-family:Georgia,serif;font-size:28px;font-weight:700;}
+  .os-eta .eta-lab{font-size:11px;opacity:0.75;text-transform:uppercase;letter-spacing:0.4px;}
+
+  /* ── Menu Screen Total Bill Box ── */
+  .menu-total-box{
+    background:linear-gradient(135deg,rgba(15,13,26,0.97),rgba(26,18,48,0.97));
+    border:1px solid rgba(255,106,43,0.3);
+    border-radius:14px;
+    padding:16px 18px;margin-top:14px;
+    box-shadow:0 4px 20px rgba(255,106,43,0.1);
+  }
+  .mtb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .mtb-label{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.5);}
+  .mtb-amt{font-family:'Playfair Display',Georgia,serif;font-size:32px;font-weight:800;color:#FF6A2B;line-height:1;}
+  .mtb-breakdown{font-size:12px;color:rgba(255,255,255,0.55);line-height:1.9;text-align:right;}
+  .mtb-divider{border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0 0 12px;}
+  .mtb-per-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .mtb-per-card{
+    background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+    border-radius:10px;padding:10px 12px;text-align:center;
+  }
+  .mtb-per-card .pc-name{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;}
+  .mtb-per-card .pc-amt{font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:700;color:#ff8c5a;}
+
+  /* ── Cart Screen Order Summary Strip ── */
+  .order-summary-strip{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    background:rgba(15,13,26,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:12px;
+    margin-bottom:22px;overflow:hidden;
+  }
+  .oss-cell{padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.08);}
+  .oss-cell:last-child{border-right:none;}
+  .oss-val{font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:700;color:#fff;}
+  .oss-lab{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);margin-top:3px;}
+  .oss-total{background:linear-gradient(135deg,rgba(255,106,43,0.2),rgba(232,82,26,0.1));}
+  .oss-total .oss-val{color:#FF6A2B;}
+  .oss-total .oss-lab{color:rgba(255,255,255,0.4);}
+
+  /* ── Login Screen ── */
+  /* ══ LOGIN SCREEN — FULL REDESIGN ══ */
+  #screenLogin{
+    position:fixed;inset:0;z-index:1000;
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+    background:#07070f;
+    overflow:hidden;
+  }
+
+  /* Animated background orbs */
+  #screenLogin::before{
+    content:'';position:absolute;
+    width:600px;height:600px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,106,43,0.22) 0%,transparent 70%);
+    top:-100px;left:-100px;
+    animation:orb1 8s ease-in-out infinite alternate;
+    pointer-events:none;
+  }
+  #screenLogin::after{
+    content:'';position:absolute;
+    width:500px;height:500px;border-radius:50%;
+    background:radial-gradient(circle,rgba(139,92,246,0.18) 0%,transparent 70%);
+    bottom:-80px;right:-80px;
+    animation:orb2 10s ease-in-out infinite alternate;
+    pointer-events:none;
+  }
+  @keyframes orb1{0%{transform:translate(0,0) scale(1);}100%{transform:translate(60px,40px) scale(1.1);}}
+  @keyframes orb2{0%{transform:translate(0,0) scale(1);}100%{transform:translate(-40px,-60px) scale(1.15);}}
+
+  /* Noise texture overlay */
+  .login-noise{
+    position:absolute;inset:0;pointer-events:none;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity:0.4;
+  }
+
+  .login-split{
+    position:relative;z-index:1;
+    display:grid;grid-template-columns:1fr 1fr;
+    width:100%;max-width:900px;
+    min-height:580px;
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:0 40px 120px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  /* Left panel — branding */
+  .login-left{
+    background:linear-gradient(145deg,#1a0e06 0%,#0d0d1a 50%,#0a0a0f 100%);
+    padding:52px 44px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    position:relative;overflow:hidden;
+  }
+  .login-left::before{
+    content:'';position:absolute;
+    width:400px;height:400px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,106,43,0.15) 0%,transparent 65%);
+    top:-60px;left:-60px;pointer-events:none;
+  }
+  .ll-logo{position:relative;z-index:1;}
+  .ll-icon{font-size:48px;margin-bottom:16px;display:block;filter:drop-shadow(0 0 20px rgba(255,106,43,0.5));}
+  .ll-brand{
+    font-family:'Playfair Display',Georgia,serif;
+    font-size:42px;font-weight:800;line-height:1;
+    color:#fff;letter-spacing:-1px;
+  }
+  .ll-brand span{
+    background:linear-gradient(135deg,#FF6A2B,#ffb07a);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    display:block;
+  }
+  .ll-tagline{
+    font-size:14px;color:rgba(255,255,255,0.45);
+    margin-top:12px;line-height:1.6;letter-spacing:0.2px;
+  }
+  .ll-features{position:relative;z-index:1;}
+  .ll-feature{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:16px;font-size:13.5px;color:rgba(255,255,255,0.7);
+  }
+  .ll-feature-icon{
+    width:34px;height:34px;border-radius:10px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+    background:rgba(255,106,43,0.12);border:1px solid rgba(255,106,43,0.2);
+  }
+  .ll-bottom{
+    font-size:11px;color:rgba(255,255,255,0.2);
+    position:relative;z-index:1;
+  }
+
+  /* Right panel — form */
+  .login-right{
+    background:rgba(255,255,255,0.04);
+    backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+    border-left:1px solid rgba(255,255,255,0.07);
+    padding:44px 40px;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .lr-title{
+    font-family:'Playfair Display',Georgia,serif;
+    font-size:26px;font-weight:700;color:#fff;margin-bottom:4px;
+  }
+  .lr-sub{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:28px;}
+
+  .login-tabs{
+    display:flex;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:14px;padding:4px;
+    margin-bottom:26px;gap:4px;
+  }
+  .ltab{
+    flex:1;padding:10px;border:none;border-radius:10px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    color:rgba(255,255,255,0.4);background:none;
+    transition:all .25s;letter-spacing:0.2px;
+  }
+  .ltab.active{
+    background:linear-gradient(135deg,rgba(255,106,43,0.2),rgba(232,82,26,0.15));
+    color:#fff;
+    border:1px solid rgba(255,106,43,0.25);
+    box-shadow:0 2px 12px rgba(255,106,43,0.15);
+  }
+
+  .linput-wrap{margin-bottom:16px;position:relative;}
+  .linput-label{
+    display:block;font-size:10.5px;text-transform:uppercase;
+    letter-spacing:0.8px;color:rgba(255,255,255,0.35);margin-bottom:7px;font-weight:600;
+  }
+  .linput-icon{
+    position:absolute;left:14px;top:40px;font-size:15px;
+    color:rgba(255,255,255,0.25);pointer-events:none;
+  }
+  .linput{
+    width:100%;padding:13px 14px 13px 40px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px;color:#fff;font-size:14px;
+    transition:all .2s;box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+  }
+  .linput:focus{
+    outline:none;
+    border-color:rgba(255,106,43,0.5);
+    background:rgba(255,106,43,0.04);
+    box-shadow:0 0 0 3px rgba(255,106,43,0.1),0 0 20px rgba(255,106,43,0.05);
+  }
+  .linput::placeholder{color:rgba(255,255,255,0.18);}
+
+  .lerror{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);
+    color:#f87171;font-size:12.5px;padding:10px 14px;border-radius:10px;
+    margin-bottom:16px;
+  }
+
+  .lbtn{
+    width:100%;padding:14px;border:none;border-radius:14px;
+    background:linear-gradient(135deg,#FF6A2B 0%,#e8521a 100%);
+    color:#fff;font-size:14px;font-weight:700;cursor:pointer;
+    box-shadow:0 6px 24px rgba(255,106,43,0.45),inset 0 1px 0 rgba(255,255,255,0.15);
+    transition:all .2s;margin-bottom:16px;
+    position:relative;overflow:hidden;letter-spacing:0.3px;
+  }
+  .lbtn::before{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,0.15) 0%,transparent 60%);
+    pointer-events:none;
+  }
+  .lbtn:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(255,106,43,0.55);}
+  .lbtn:active{transform:translateY(0);}
+  .lbtn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none;}
+
+  .lorgoogle{
+    text-align:center;font-size:11px;color:rgba(255,255,255,0.2);
+    margin:0 0 16px;position:relative;letter-spacing:0.5px;text-transform:uppercase;
+  }
+  .lorgoogle::before,.lorgoogle::after{
+    content:'';position:absolute;top:50%;width:38%;height:1px;
+    background:rgba(255,255,255,0.06);
+  }
+  .lorgoogle::before{left:0;} .lorgoogle::after{right:0;}
+
+  .lbtn-google{
+    width:100%;padding:13px;
+    border:1px solid rgba(255,255,255,0.09);border-radius:14px;
+    background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.85);
+    font-size:13.5px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    transition:all .2s;margin-bottom:20px;
+    font-family:'Inter',sans-serif;
+  }
+  .lbtn-google:hover{
+    background:rgba(255,255,255,0.08);
+    border-color:rgba(255,255,255,0.15);
+    transform:translateY(-1px);
+  }
+
+  .login-footer{
+    text-align:center;font-size:10.5px;
+    color:rgba(255,255,255,0.18);line-height:1.6;margin-top:4px;
+  }
+
+  @media(max-width:700px){
+    .login-split{grid-template-columns:1fr;}
+    .login-left{display:none;}
+    .login-right{padding:36px 28px;}
+  }
+
+  /* ── User pill in header ── */
+  .user-pill{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+    border-radius:30px;padding:6px 12px 6px 6px;cursor:pointer;
+    transition:all .2s;
+  }
+  .user-pill:hover{background:rgba(255,255,255,0.1);}
+  .user-avatar{
+    width:28px;height:28px;border-radius:50%;
+    background:linear-gradient(135deg,#FF6A2B,#e8521a);
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;color:#fff;flex-shrink:0;
+  }
+  .user-name{font-size:12.5px;font-weight:600;color:#fff !important;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .user-logout{font-size:10px;color:rgba(255,255,255,0.35);margin-left:2px;}
+
+  /* ── Colour blind mode overrides ── */
+  [data-cb="true"] .status-tag.paid      { background:rgba(74,144,217,0.15)!important; color:#7ab3e8!important; border-color:rgba(74,144,217,0.3)!important; }
+  [data-cb="true"] .status-tag.unpaid    { background:rgba(245,166,35,0.15)!important; color:#F5A623!important; border-color:rgba(245,166,35,0.3)!important; }
+  [data-cb="true"] .calbar-fill.green    { background:linear-gradient(90deg,#4A90D9,#7ab3e8)!important; }
+  [data-cb="true"] .calbar-fill.yellow   { background:linear-gradient(90deg,#F5A623,#fcd34d)!important; }
+  [data-cb="true"] .calbar-fill.red      { background:linear-gradient(90deg,#F5A623,#fbbf24)!important; }
+  [data-cb="true"] .pay-btn.to-pay       { background:linear-gradient(135deg,#4A90D9,#2563EB)!important; box-shadow:0 4px 20px rgba(74,144,217,0.4)!important; }
+  [data-cb="true"] .add-btn              { background:linear-gradient(135deg,#4A90D9,#2563EB)!important; }
+  [data-cb="true"] .organizer-bar.settled{ background:linear-gradient(135deg,#1a3a6e,#2563EB)!important; }
+  /* ensure paid=BLUE label, unpaid=AMBER label for CB users */
+  [data-cb="true"] .status-tag.paid::before  { content:'✓ '; }
+  [data-cb="true"] .status-tag.unpaid::before{ content:'⚠ '; }
+
+  /* ── Colour blind mode - screen bg ── */
+  [data-cb="true"] body, [data-cb="true"] html { background:#07070f!important; }
+
+  /* light mode overrides */
+  html[style*="background: rgb(245"] body::before { opacity:0.3; }
+  html[style*="background: rgb(245"] .panel { background:#fff!important; box-shadow:0 2px 12px rgba(0,0,0,0.08)!important; }
+  html[style*="background: rgb(245"] .cart-line { border-bottom-color:rgba(0,0,0,0.08)!important; }
+  html[style*="background: rgb(245"] .cart-line .iname { color:#1a1a2e!important; }
+  html[style*="background: rgb(245"] header { background:rgba(255,255,255,0.9)!important; box-shadow:0 2px 12px rgba(0,0,0,0.1)!important; }
+
+  /* ── Screen Navigation ── */
+  .back-btn{
+    background:none;border:1px solid var(--line);color:var(--ink);
+    padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;
+    white-space:nowrap;
+  }
+  .back-btn:hover{background:#F5EAD8;border-color:var(--orange);}
+  .cart-badge-btn{
+    background:var(--ink);color:#fff;border:none;
+    padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;gap:8px;
+  }
+  .cart-badge-btn:hover{background:#000;}
+  .cbadge{
+    background:var(--orange);color:#fff;border-radius:50%;
+    width:20px;height:20px;font-size:11px;font-weight:700;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+
+  /* ── Offers Banner ── */
+  .offers-banner{
+    position:relative;border-radius:14px;overflow:hidden;
+    margin-bottom:4px;user-select:none;
+  }
+  .offers-track{
+    display:flex;transition:transform .45s cubic-bezier(.4,0,.2,1);
+  }
+  .offer-slide{
+    min-width:100%;padding:24px 26px 20px;color:#fff;
+    display:flex;flex-direction:column;gap:4px;box-sizing:border-box;
+    position:relative;overflow:hidden;
+  }
+  .offer-slide::after{
+    content:'🎉';position:absolute;right:24px;bottom:-8px;
+    font-size:72px;opacity:0.12;
+  }
+  .os-tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.85;}
+  .os-title{font-family:Georgia,serif;font-size:22px;font-weight:700;line-height:1.25;margin-top:2px;}
+  .os-sub{font-size:13px;opacity:0.85;margin-top:2px;}
+  .os-cta{
+    margin-top:12px;display:inline-block;
+    background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);
+    padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;
+    cursor:pointer;width:fit-content;
+  }
+  .os-cta:hover{background:rgba(255,255,255,0.3);}
+  .offers-dots{
+    position:absolute;bottom:10px;right:14px;
+    display:flex;gap:5px;
+  }
+  .odot{
+    width:7px;height:7px;border-radius:50%;
+    background:rgba(255,255,255,0.4);cursor:pointer;transition:all .2s;
+  }
+  .odot.active{background:#fff;width:18px;border-radius:5px;}
+  .offer-arrow{
+    position:absolute;top:50%;transform:translateY(-50%);
+    background:rgba(255,255,255,0.2);border:none;color:#fff;
+    width:30px;height:30px;border-radius:50%;font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .offer-arrow:hover{background:rgba(255,255,255,0.35);}
+  .offer-arrow.left{left:10px;}
+  .offer-arrow.right{right:10px;}
+
+  /* ── Vertical Restaurant List ── */
+  .resto-list{display:flex;flex-direction:column;gap:10px;margin-bottom:4px;}
+  .resto-row{
+    background:rgba(255,255,255,0.05);
+    border:1.5px solid rgba(255,255,255,0.1);
+    border-radius:14px;
+    padding:16px 18px;cursor:pointer;transition:all .15s;
+    display:flex;align-items:center;gap:16px;
+  }
+  .resto-row:hover{border-color:rgba(255,106,43,0.5);background:rgba(255,106,43,0.06);box-shadow:0 3px 14px rgba(255,106,43,.12);}
+  .resto-row.selected{border-color:#FF6A2B;background:rgba(255,106,43,0.1);}
+  .rr-emoji{font-size:32px;flex-shrink:0;}
+  .rr-info{flex:1;min-width:0;}
+  .rr-name{font-family:'Playfair Display',Georgia,serif;font-size:16px;font-weight:700;color:#fff !important;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .rr-cuisine{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;}
+  .rr-desc{font-size:12px;color:rgba(255,255,255,0.4);margin-top:3px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px;}
+  .rr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+  .rr-rating{
+    display:flex;align-items:center;gap:4px;
+    background:rgba(255,106,43,0.15);color:#ff8c5a;
+    font-size:12px;font-weight:700;padding:4px 9px;border-radius:20px;
+    border:1px solid rgba(255,106,43,0.25);
+  }
+  .rr-rating .star{color:#F59E0B;}
+  .rr-time{font-size:11.5px;color:rgba(255,255,255,0.4);}
+  .rr-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:0.4px;}
+  .rr-badge.popular{background:#FF6A2B;color:#fff;}
+  .rr-badge.new{background:#2E8B57;color:#fff;}
+  .rr-select-indicator{
+    width:22px;height:22px;border-radius:50%;
+    border:2px solid rgba(255,255,255,0.15);
+    display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:#fff;
+  }
+  .resto-row.selected .rr-select-indicator{background:#FF6A2B;border-color:#FF6A2B;color:#fff;}
+
+  /* ── Restaurant Selector (old horizontal - keep for backwards compat) ── */
+  .resto-scroll-wrap{
+    position:relative;margin-bottom:18px;
+  }
+  .resto-scroll-wrap::after{
+    content:'';position:absolute;right:0;top:0;bottom:0;width:40px;
+    background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;border-radius:0 12px 12px 0;
+  }
+  .resto-scroll{
+    display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;
+    scrollbar-width:thin;scrollbar-color:var(--line) transparent;
+  }
+  .resto-scroll::-webkit-scrollbar{height:4px;}
+  .resto-scroll::-webkit-scrollbar-track{background:transparent;}
+  .resto-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  .resto-card{
+    flex-shrink:0;width:170px;background:var(--panel);
+    border:2px solid var(--line);border-radius:12px;
+    padding:14px;cursor:pointer;transition:all .15s;
+    position:relative;overflow:hidden;
+  }
+  .resto-card:hover{border-color:var(--orange);transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,106,43,.15);}
+  .resto-card.selected{border-color:var(--orange);background:#FFF6EC;box-shadow:0 4px 16px rgba(255,106,43,.2);}
+  .resto-card.selected::after{
+    content:'✓';position:absolute;top:8px;right:10px;
+    color:var(--orange-deep);font-weight:700;font-size:13px;
+  }
+  .rc-emoji{font-size:28px;margin-bottom:8px;}
+  .rc-name{font-family:Georgia,serif;font-size:14px;font-weight:700;line-height:1.3;}
+  .rc-cuisine{font-size:11px;color:var(--muted);margin-top:2px;}
+  .rc-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+  .rc-rating{
+    display:flex;align-items:center;gap:4px;
+    background:#FFF1E2;color:var(--orange-deep);
+    font-size:11.5px;font-weight:700;padding:3px 7px;border-radius:20px;
+  }
+  .rc-rating .star{color:#F59E0B;}
+  .rc-time{font-size:11px;color:var(--muted);}
+  .rc-badge{
+    position:absolute;top:8px;left:10px;
+    font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;
+    text-transform:uppercase;letter-spacing:0.4px;
+  }
+  .rc-badge.popular{background:#FF6A2B;color:#fff;}
+  .rc-badge.new{background:#2E8B57;color:#fff;}
+
+  .resto-detail-bar{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:14px 18px;margin-bottom:22px;
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  .rdb-emoji{font-size:32px;}
+  .rdb-info .rdb-name{font-family:Georgia,serif;font-size:17px;font-weight:700;}
+  .rdb-info .rdb-meta{font-size:12px;color:var(--muted);margin-top:3px;}
+  .rdb-stats{display:flex;gap:16px;margin-left:auto;flex-wrap:wrap;}
+  .rdb-stat{text-align:center;}
+  .rdb-stat .sv{font-family:Georgia,serif;font-size:16px;font-weight:700;color:var(--orange-deep);}
+  .rdb-stat .sl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;}
+
+  /* ── Mood filter (feature 20) ── */
+  .mood-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .mood-chip{
+    padding:6px 12px;border-radius:20px;border:1px solid var(--line);
+    background:#FFFDF9;font-size:12.5px;cursor:pointer;
+    display:flex;align-items:center;gap:5px;transition:all .15s;
+  }
+  .mood-chip:hover{border-color:var(--orange);background:#FFF1E2;}
+  .mood-chip.active{background:var(--orange);color:#fff;border-color:var(--orange);}
+
+  /* ── Quick reply chips (feature 1) ── */
+  .quick-chips{display:flex;gap:7px;flex-wrap:wrap;padding:10px 14px 6px;border-top:1px solid var(--line);background:#FFFDF9;}
+  .qchip{
+    padding:5px 11px;border-radius:20px;border:1px solid var(--line);
+    background:#fff;font-size:12px;cursor:pointer;color:var(--ink);white-space:nowrap;
+  }
+  .qchip:hover{background:#FFF1E2;border-color:var(--orange);}
+
+  /* ── Bot avatar typing indicator (feature 4) ── */
+  .msg.bot-typing{
+    background:#F0E6D8;align-self:flex-start;border-bottom-left-radius:3px;
+    display:flex;align-items:center;gap:8px;padding:10px 14px;
+  }
+  .bot-avatar{width:26px;height:26px;border-radius:50%;background:var(--orange);
+    display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+  .dot-typing{display:flex;gap:4px;align-items:center;}
+  .dot-typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:dotBounce 1.2s infinite;}
+  .dot-typing span:nth-child(2){animation-delay:.2s;}
+  .dot-typing span:nth-child(3){animation-delay:.4s;}
+  @keyframes dotBounce{0%,80%,100%{transform:scale(0.7);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+
+  /* ── Thumbs feedback (feature 5) ── */
+  .msg-wrap{display:flex;flex-direction:column;align-self:flex-start;max-width:78%;}
+  .msg-wrap .msg{align-self:stretch;max-width:100%;}
+  .msg-feedback{display:flex;gap:6px;margin-top:4px;padding-left:2px;}
+  .thumb-btn{background:none;border:1px solid var(--line);border-radius:20px;padding:2px 8px;font-size:11px;cursor:pointer;color:var(--muted);}
+  .thumb-btn:hover,.thumb-btn.active{background:#FFF1E2;border-color:var(--orange);color:var(--orange-deep);}
+
+  /* ── Smart suggestion banner (feature 2) ── */
+  .smart-nudge{
+    background:#FFF1E2;border:1px solid var(--orange);border-radius:8px;
+    padding:10px 14px;margin:0 14px 8px;font-size:12.5px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .smart-nudge .sn-text{color:var(--orange-deep);}
+  .smart-nudge button{background:var(--orange);color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+  /* ── Agent card (feature 8) ── */
+  .agent-card{display:flex;align-items:center;gap:14px;background:#F4F0FF;border:1px solid #C5B8E8;border-radius:10px;padding:14px;margin-top:14px;}
+  .agent-avatar{width:46px;height:46px;border-radius:50%;background:#5F259F;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .agent-info .agent-name{font-weight:700;font-size:14px;}
+  .agent-info .agent-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .agent-info .agent-rating{font-size:12px;color:#D99A1B;margin-top:2px;}
+  .agent-chat-btn{margin-left:auto;background:#5F259F;color:#fff;border:none;padding:8px 14px;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer;}
+
+  /* ── Issue tracker (feature 11) ── */
+  .issue-tracker{margin-top:14px;}
+  .it-title{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:12px;}
+  .it-steps{display:flex;align-items:center;}
+  .it-step{flex:1;text-align:center;position:relative;}
+  .it-step:not(:last-child)::after{content:'';position:absolute;top:13px;left:50%;width:100%;height:2px;background:var(--line);z-index:0;}
+  .it-step.done:not(:last-child)::after{background:var(--green);}
+  .it-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:11px;position:relative;z-index:1;}
+  .it-step.done .it-dot{background:var(--green);border-color:var(--green);color:#fff;}
+  .it-step.active .it-dot{border-color:var(--orange);background:#FFF1E2;color:var(--orange-deep);}
+  .it-label{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.3;}
+  .it-step.done .it-label,.it-step.active .it-label{color:var(--orange-deep);font-weight:600;}
+  .it-step.done .it-label{color:var(--green);}
+  .it-time{font-size:9px;color:var(--muted);margin-top:2px;}
+
+  /* ── FAQ accordion (feature 13) ── */
+  .faq-panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:12px;overflow:hidden;display:none;}
+  .faq-panel.open{display:block;}
+  .faq-header{background:#1A3A2A;color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+  .faq-header-left{display:flex;align-items:center;gap:10px;}
+  .faq-logo{width:32px;height:32px;border-radius:8px;background:#2E8B57;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .faq-item{border-bottom:1px solid var(--line);}
+  .faq-item:last-child{border-bottom:none;}
+  .faq-q{width:100%;text-align:left;padding:14px 18px;background:none;border:none;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+  .faq-q:hover{background:#FFF6EC;}
+  .faq-q .faq-arrow{font-size:11px;color:var(--muted);transition:transform .2s;}
+  .faq-q.open .faq-arrow{transform:rotate(180deg);}
+  .faq-a{display:none;padding:0 18px 14px;font-size:13px;color:var(--muted);line-height:1.6;}
+  .faq-a.open{display:block;}
+  .sb-btn.faq{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);}
+  .sb-btn.faq:hover{background:rgba(255,255,255,0.2);}
+
+  /* ── Unread badge (feature 3) ── */
+  .unread-badge{background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;}
+
+  .bill-wrapper{
+    background:rgba(15,13,26,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:16px;
+    overflow:hidden;margin-bottom:4px;color:#fff;
+  }
+  .bill-empty-note{color:rgba(255,255,255,0.4);font-size:13px;text-align:center;padding:28px;}
+  .bill-header{
+    background:linear-gradient(135deg,rgba(255,106,43,0.15),rgba(139,92,246,0.1));
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    padding:22px 26px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;
+  }
+  .bh-left{}
+  .bh-brand{font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:700;color:#fff;}
+  .bh-brand span{background:linear-gradient(135deg,#FF6A2B,#ff9a6c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .bh-tagline{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;}
+  .bh-right{text-align:right;}
+  .bh-label{font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.4);}
+  .bh-orderno{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:700;color:#fff;margin-top:2px;}
+  .bh-datetime{font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px;}
+
+  .bill-meta{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:0;border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .bm-cell{padding:14px 20px;border-right:1px solid rgba(255,255,255,0.08);}
+  .bm-cell:last-child{border-right:none;}
+  .bm-label{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);}
+  .bm-val{font-size:14px;font-weight:700;color:#fff;margin-top:3px;}
+
+  .bill-body{padding:0 20px;}
+
+  .bill-person-block{border-bottom:1px solid rgba(255,255,255,0.08);padding:16px 0;}
+  .bill-person-block:last-child{border-bottom:none;}
+  .bpb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .bpb-name{display:flex;align-items:center;gap:8px;font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:700;color:#fff;}
+  .bpb-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;}
+  .bpb-badge.organizer{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);}
+  .bpb-badge.paid{background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.3);}
+  .bpb-badge.unpaid{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);}
+  .bpb-badge.qr{background:rgba(255,106,43,0.15);color:#ff8c5a;border:1px solid rgba(255,106,43,0.3);}
+  .bpb-subtotal{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:700;color:#FF6A2B;}
+
+  .bill-item-row{
+    display:grid;grid-template-columns:1fr auto auto;gap:10px;
+    font-size:12.5px;padding:5px 0 5px 4px;align-items:center;
+    border-bottom:1px dashed rgba(255,255,255,0.07);
+  }
+  .bill-item-row:last-child{border-bottom:none;}
+  .bir-name{color:rgba(255,255,255,0.85);}
+  .bir-cal{color:#34d399;font-size:11.5px;text-align:right;}
+  .bir-price{font-weight:600;text-align:right;color:#ff8c5a;}
+  .bir-refunded{text-decoration:line-through;color:rgba(255,255,255,0.3);}
+
+  .bill-shared-block{
+    background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 14px;
+    margin:14px 0;border:1px dashed rgba(255,255,255,0.1);
+  }
+  .bsb-title{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);margin-bottom:8px;}
+  .bsb-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;color:rgba(255,255,255,0.5);}
+  .bsb-row span:last-child{font-weight:600;color:rgba(255,255,255,0.85);}
+
+  .bill-totals{
+    border-top:1px solid rgba(255,255,255,0.1);padding:16px 20px;
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  }
+  .bt-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:rgba(255,255,255,0.85);}
+  .bt-row.bold{font-weight:700;font-size:14px;color:#fff;}
+  .bt-row.green{color:#34d399;font-weight:700;}
+  .bt-row.red{color:#f87171;font-weight:700;}
+  .bt-row .label{color:rgba(255,255,255,0.45);}
+  .bt-divider{border:none;border-top:1px dashed rgba(255,255,255,0.08);margin:8px 0;}
+  .bill-grand{
+    background:linear-gradient(135deg,#FF6A2B,#e8521a);color:#fff;
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:16px 24px;
+  }
+  .bg-label{font-size:13px;opacity:0.85;text-transform:uppercase;letter-spacing:0.5px;}
+  .bg-amt{font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:700;}
+  .bt-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+  .bt-row.bold{font-weight:700;font-size:14px;}
+  .bt-row.green{color:var(--green);font-weight:700;}
+  .bt-row.red{color:var(--red);font-weight:700;}
+  .bt-row .label{color:var(--muted);}
+  .bt-divider{border:none;border-top:1px dashed var(--line);margin:8px 0;}
+  .bill-grand{
+    background:var(--ink);color:#fff;
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:16px 24px;margin-top:0;
+  }
+  .bg-label{font-size:13px;opacity:0.75;text-transform:uppercase;letter-spacing:0.5px;}
+  .bg-amt{font-family:Georgia,serif;font-size:28px;font-weight:700;}
+  .bill-status-bar{
+    display:flex;gap:0;border-top:1px solid var(--line);
+  }
+  .bsb-cell{
+    flex:1;padding:12px 16px;text-align:center;border-right:1px solid var(--line);
+  }
+  .bsb-cell:last-child{border-right:none;}
+  .bsb-cell .bsc-val{font-family:Georgia,serif;font-size:17px;font-weight:700;}
+  .bsb-cell .bsc-val.green{color:var(--green);}
+  .bsb-cell .bsc-val.red{color:var(--red);}
+  .bsb-cell .bsc-val.orange{color:var(--orange-deep);}
+  .bsb-cell .bsc-lab{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:2px;}
+
+  .bill-print-row{padding:12px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;}
+  .bill-print-btn{
+    padding:8px 16px;border-radius:7px;border:1px solid var(--line);
+    background:none;color:var(--ink);font-weight:600;font-size:12.5px;cursor:pointer;
+    display:flex;align-items:center;gap:5px;
+  }
+  .bill-print-btn:hover{background:#F5EAD8;}
+
+  /* ── Refund button on card ── */
+  .removed-alert{
+    background:#FFF1E2;border:1px solid var(--orange);border-radius:8px;
+    padding:10px 12px;margin-top:10px;font-size:12.5px;
+  }
+  .removed-alert .ra-title{font-weight:700;color:var(--orange-deep);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+  .removed-alert .ra-item{display:flex;justify-content:space-between;padding:3px 0;color:var(--ink);}
+  .removed-alert .ra-item span{color:var(--red);font-weight:600;}
+  .removed-alert .ra-total{display:flex;justify-content:space-between;font-weight:700;
+    border-top:1px dashed var(--line);margin-top:6px;padding-top:6px;font-size:13px;}
+  .payback-btn{
+    width:100%;margin-top:8px;padding:9px;border-radius:7px;border:none;
+    background:var(--orange);color:#fff;font-weight:700;font-size:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .payback-btn:hover{background:var(--orange-deep);}
+  .payback-btn.done{background:#E6F4EA;color:var(--green);cursor:default;}
+
+  .refund-row{display:flex;gap:8px;margin-top:8px;}
+  .refund-btn{
+    flex:1;padding:8px;border-radius:7px;border:1px solid #F0DFC9;
+    background:#FFF6EC;color:var(--orange-deep);font-weight:700;font-size:12px;cursor:pointer;
+  }
+  .refund-btn:hover{background:#FFE8D4;border-color:var(--orange);}
+  .refund-done-btn{
+    flex:1;padding:8px;border-radius:7px;border:1px solid #d4ead9;
+    background:#f0faf3;color:var(--green);font-weight:700;font-size:12px;cursor:pointer;
+  }
+  .refunded-tag{font-size:10.5px;color:var(--red);text-align:center;margin-top:4px;font-weight:600;}
+
+  /* ── Refund modal ── */
+  .rmodal-overlay{
+    position:fixed;inset:0;background:rgba(43,27,18,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;
+  }
+  .rmodal{background:#fff;border-radius:14px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);}
+  .rmodal-head{background:var(--red);color:#fff;padding:18px 20px;}
+  .rmodal-head .rh-title{font-family:Georgia,serif;font-size:18px;font-weight:700;}
+  .rmodal-head .rh-sub{font-size:12px;opacity:0.85;margin-top:3px;}
+  .rmodal-body{padding:18px 20px;}
+  .rmodal-label{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:10px;}
+  .refund-item-row{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;
+  }
+  .refund-item-row:last-child{border-bottom:none;}
+  .refund-item-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--red);cursor:pointer;flex-shrink:0;}
+  .ri-name{flex:1;font-size:13px;font-weight:600;}
+  .ri-price{font-size:13px;font-weight:700;color:var(--red);}
+  .refund-total-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:14px;padding-top:12px;border-top:2px solid var(--line);
+  }
+  .rt-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;}
+  .rt-amt{font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--red);}
+  .rmodal-reason{margin-top:14px;}
+  .rmodal-reason select{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;
+    font-size:13px;background:#FFFDF9;color:var(--ink);
+  }
+  .rmodal-btns{display:flex;gap:8px;margin-top:16px;}
+  .rprocess-btn{
+    flex:1;padding:10px;border-radius:7px;border:none;
+    background:var(--red);color:#fff;font-weight:700;font-size:13px;cursor:pointer;
+  }
+  .rprocess-btn:hover{background:#b83a3a;}
+  .rprocess-btn:disabled{background:#E8D9C8;cursor:not-allowed;}
+  .rcancel-btn{
+    padding:10px 16px;border-radius:7px;border:1px solid var(--line);
+    background:none;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer;
+  }
+
+  /* ── Receipt modal ── */
+  .receipt-overlay{
+    position:fixed;inset:0;background:rgba(43,27,18,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:200;padding:16px;
+  }
+  .receipt-box{
+    background:#fff;border-radius:14px;width:100%;max-width:400px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;
+  }
+  .receipt-inner{padding:24px;}
+  .receipt-logo{text-align:center;margin-bottom:4px;font-size:28px;}
+  .receipt-brand{text-align:center;font-family:Georgia,serif;font-size:20px;font-weight:700;}
+  .receipt-brand span{color:var(--orange-deep);}
+  .receipt-tagline{text-align:center;font-size:11px;color:var(--muted);margin-bottom:16px;}
+  .receipt-divider{border:none;border-top:1px dashed var(--line);margin:14px 0;}
+  .receipt-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px;}
+  .receipt-row.bold{font-weight:700;}
+  .receipt-row.red{color:var(--red);font-weight:700;}
+  .receipt-row.green{color:var(--green);font-weight:700;}
+  .receipt-row .label{color:var(--muted);}
+  .receipt-items{margin:10px 0;}
+  .receipt-item{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid #F9F0E6;}
+  .receipt-item:last-child{border-bottom:none;}
+  .receipt-stamp{
+    text-align:center;margin-top:16px;
+    font-family:Georgia,serif;font-size:14px;font-weight:700;
+    color:var(--green);border:2px solid var(--green);
+    display:inline-block;padding:4px 16px;border-radius:6px;
+    transform:rotate(-2deg);
+  }
+  .receipt-stamp-wrap{text-align:center;margin:14px 0 4px;}
+  .receipt-footer{text-align:center;font-size:10.5px;color:var(--muted);margin-top:10px;}
+  .receipt-actions{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line);}
+  .ract-print{flex:1;padding:10px;border-radius:7px;border:none;background:var(--ink);color:#fff;font-weight:700;font-size:13px;cursor:pointer;}
+  .ract-close{padding:10px 16px;border-radius:7px;border:1px solid var(--line);background:none;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══════ SCREEN: LOGIN ═══════ -->
+  <div id="screenLogin" style="display:none;">
+    <div class="login-noise"></div>
+    <div class="login-split">
+
+      <!-- Left branding panel -->
+      <div class="login-left">
+        <div class="ll-logo">
+          <span class="ll-icon">🍽️</span>
+          <div class="ll-brand">Split<span>Plate</span></div>
+          <div class="ll-tagline">The smartest way to split food bills with your crew — no awkward math, no chasing people.</div>
+        </div>
+        <div class="ll-features">
+          <div class="ll-feature"><div class="ll-feature-icon">👥</div>Tag each item to a person</div>
+          <div class="ll-feature"><div class="ll-feature-icon">💸</div>Auto-calculate individual bills</div>
+          <div class="ll-feature"><div class="ll-feature-icon">📲</div>Send QR payment per person</div>
+          <div class="ll-feature"><div class="ll-feature-icon">🍛</div>6 restaurants · mood filter</div>
+          <div class="ll-feature"><div class="ll-feature-icon">🤖</div>AI support chatbot built-in</div>
+        </div>
+        <div class="ll-bottom">SplitPlate © 2025 · Made with ❤️ for group orders</div>
+      </div>
+
+      <!-- Right form panel -->
+      <div class="login-right">
+        <div class="lr-title">Welcome back</div>
+        <div class="lr-sub">Sign in to your SplitPlate account</div>
+
+        <div class="login-tabs">
+          <button class="ltab active" id="tabSignin">Sign In</button>
+          <button class="ltab" id="tabSignup">Sign Up</button>
+        </div>
+
+        <!-- Sign In -->
+        <div id="formSignin">
+          <div class="linput-wrap">
+            <label class="linput-label">Email address</label>
+            <div class="linput-icon">✉️</div>
+            <input type="email" id="siEmail" class="linput" placeholder="you@email.com" onkeydown="if(event.key==='Enter')document.getElementById('siPassword').focus()">
+          </div>
+          <div class="linput-wrap">
+            <label class="linput-label">Password</label>
+            <div class="linput-icon">🔒</div>
+            <input type="password" id="siPassword" class="linput" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleSignIn()">
+          </div>
+          <div id="siError" class="lerror" style="display:none;">⚠️ &nbsp;<span id="siErrorMsg"></span></div>
+          <button class="lbtn" id="siBtn" >Sign In →</button>
+          <div class="lorgoogle">or continue with</div>
+          <button class="lbtn-google">
+            <svg width="20" height="20" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/></svg> Sign in with Google
+          </button>
+        </div>
+
+        <!-- Sign Up -->
+        <div id="formSignup" style="display:none;">
+          <div class="linput-wrap">
+            <label class="linput-label">Your name</label>
+            <div class="linput-icon">👤</div>
+            <input type="text" id="suName" class="linput" placeholder="e.g. Riya" onkeydown="if(event.key==='Enter')document.getElementById('suEmail').focus()">
+          </div>
+          <div class="linput-wrap">
+            <label class="linput-label">Email address</label>
+            <div class="linput-icon">✉️</div>
+            <input type="email" id="suEmail" class="linput" placeholder="you@email.com" onkeydown="if(event.key==='Enter')document.getElementById('suPassword').focus()">
+          </div>
+          <div class="linput-wrap">
+            <label class="linput-label">Password</label>
+            <div class="linput-icon">🔒</div>
+            <input type="password" id="suPassword" class="linput" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')handleSignUp()">
+          </div>
+          <div id="suError" class="lerror" style="display:none;">⚠️ &nbsp;<span id="suErrorMsg"></span></div>
+          <button class="lbtn" id="suBtn" >Create Account →</button>
+          <div class="lorgoogle">or continue with</div>
+          <button class="lbtn-google">
+            <svg width="20" height="20" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/></svg> Sign up with Google
+          </button>
+        </div>
+
+        <div class="login-footer">By continuing you agree to SplitPlate's Terms of Service & Privacy Policy</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SCREEN: HOME ═══════ -->
+  <div id="screenHome" style="display:none;">
+    <header>
+      <div class="brand">
+        <div class="mark">Split<span>Plate</span></div>
+        <div class="tag">one cart, separate bills, separate plates</div>
+      </div>
+      <div id="userPillHome" class="user-pill"></div>
+    </header>
+
+    <div id="offersBanner" class="offers-banner">
+      <div class="offers-track" id="offersTrack">
+        <div class="offer-slide" style="background:linear-gradient(135deg,#E2501A,#FF6A2B);">
+          <div class="os-tag">🔥 Limited time</div>
+          <div class="os-title">50% OFF on first group order</div>
+          <div class="os-sub">Use code <b>SPLIT50</b> · Min order ₹500</div>
+          <div class="os-cta" onclick="offerAction('meghna')">Grab deal →</div>
+        </div>
+        <div class="offer-slide" style="background:linear-gradient(135deg,#1A3A2A,#2E8B57);">
+          <div class="os-tag">🍛 Weekend special</div>
+          <div class="os-title">Free Biryani for orders above ₹999</div>
+          <div class="os-sub">Valid at Meghna Foods · Sat & Sun only</div>
+          <div class="os-cta" onclick="offerAction('meghna')">Order now →</div>
+        </div>
+        <div class="offer-slide" style="background:linear-gradient(135deg,#3A2A7A,#5F259F);">
+          <div class="os-tag">☕ Morning offer</div>
+          <div class="os-title">Buy 3 coffees, get 1 free</div>
+          <div class="os-sub">Valid at Nandini · Before 11 AM</div>
+          <div class="os-cta" onclick="offerAction('nandini')">See menu →</div>
+        </div>
+        <div class="offer-slide" style="background:linear-gradient(135deg,#1A2E4A,#2563EB);">
+          <div class="os-tag">👥 Group deal</div>
+          <div class="os-title">₹30 off per person for 4+ people</div>
+          <div class="os-sub">All restaurants · Auto-applied at checkout</div>
+          <div class="os-cta" onclick="offerAction('bigmingos')">Start order →</div>
+        </div>
+        <div class="offer-slide" style="background:linear-gradient(135deg,#4A1A1A,#D14848);">
+          <div class="os-tag">🍔 Mingos special</div>
+          <div class="os-title">Combo for ₹199 — Burger + Fries + Drink</div>
+          <div class="os-sub">Big Mingos & Small Mingos · Today only</div>
+          <div class="os-cta" onclick="offerAction('smallmingos')">Order combo →</div>
+        </div>
+      </div>
+      <div class="offers-dots" id="offersDots"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:24px;"><span class="num">1</span> Choose a restaurant</div>
+    <div class="resto-list" id="restoList"></div>
+  </div>
+
+  <!-- ═══════ SCREEN: MENU ═══════ -->
+  <div id="screenMenu" style="display:none;">
+    <header>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="back-btn" onclick="goScreen('home')" title="Home">🏠</button>
+        <div class="brand">
+          <div class="mark" id="menuRestoName" style="font-size:20px;">Restaurant</div>
+          <div class="tag" id="menuRestoCuisine">Cuisine</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="menuCartBadge" class="cart-badge-btn" onclick="goScreen('cart')" style="display:none;">
+          🛒 View cart <span id="cartCountBadge" class="cbadge">0</span>
+        </div>
+        <div id="userPillMenu" class="user-pill" style="display:none;"></div>
+      </div>
+    </header>
+
+    <div id="menuRestoDetailBar" class="resto-detail-bar" style="margin-bottom:20px;"></div>
+
+    <!-- Live calorie counter per person -->
+    <div id="menuCalStrip" style="display:none;background:rgba(15,13,26,0.85);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 16px;margin-bottom:18px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.35);margin-bottom:10px;">🔥 Live calories per person</div>
+      <div id="menuCalRow" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Add an item <span class="pill">tag a person</span></h2>
+        <label for="personSelect">Ordering for</label>
+        <select id="personSelect"></select>
+        <div style="margin-top:12px;">
+          <label for="newPersonEmail">Add person by email</label>
+          <div style="display:flex;gap:8px;">
+            <input type="email" id="newPersonEmail" placeholder="friend@email.com" style="flex:1;" onkeydown="if(event.key==='Enter')document.getElementById('addPersonBtn').click()">
+            <button class="add-btn" style="margin-top:0;width:auto;padding:10px 14px;font-size:12px;flex-shrink:0;" id="addPersonBtn">+ Add</button>
+          </div>
+          <div id="addPersonMsg" style="font-size:12px;margin-top:6px;display:none;"></div>
+        </div>
+        <label>Mood filter</label>
+        <div class="mood-row" id="moodRow">
+          <div class="mood-chip active" onclick="setMood('all')" data-mood="all">🍽️ All</div>
+          <div class="mood-chip" onclick="setMood('hungry')" data-mood="hungry">😋 Hungry</div>
+          <div class="mood-chip" onclick="setMood('lazy')" data-mood="lazy">😴 Lazy</div>
+          <div class="mood-chip" onclick="setMood('healthy')" data-mood="healthy">🥗 Healthy</div>
+          <div class="mood-chip" onclick="setMood('sweet')" data-mood="sweet">🍮 Sweet</div>
+        </div>
+        <label>Menu</label>
+        <div class="menu-list" id="menuList"></div>
+
+      </div>
+
+      <div class="panel">
+        <h2>Shared cart</h2>
+        <div id="cartList"><div class="empty-note">No items yet — add something tasty.</div></div>
+        <div class="fees">
+          <div class="frow"><span>Delivery fee</span><span>₹40</span></div>
+          <div class="frow"><span>Platform fee</span><span>₹8</span></div>
+          <div class="frow"><span>Taxes (5%)</span><span id="taxLine">₹0</span></div>
+          <div class="frow" style="color:var(--ink);font-weight:700;border-top:1px dashed var(--line);padding-top:6px;margin-top:6px;">
+            <span>Split equally per person, added to each share</span>
+          </div>
+        </div>
+
+        <!-- Live Total Bill Box -->
+        <div id="menuTotalBox" class="menu-total-box" style="display:none;">
+          <div class="mtb-row">
+            <div>
+              <div class="mtb-label">Total Bill</div>
+              <div class="mtb-amt" id="menuTotalAmt">₹0</div>
+            </div>
+            <div class="mtb-breakdown" id="menuTotalBreakdown"></div>
+          </div>
+          <hr class="mtb-divider">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.4);margin-bottom:8px;">Split per person</div>
+          <div class="mtb-per-grid" id="menuPerPersonGrid"></div>
+        </div>
+
+        <button class="add-btn" style="margin-top:14px;background:var(--green);" onclick="goScreen('cart')" id="proceedBtn" disabled>
+          Proceed to Bill & Pay →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SCREEN: CART / BILL / PAY ═══════ -->
+  <div id="screenCart" style="display:none;">
+    <header>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="back-btn" onclick="goScreen('home')" title="Home">🏠</button>
+        <button class="back-btn" onclick="goScreen('menu')">← Menu</button>
+        <div class="brand">
+          <div class="mark">Split<span>Plate</span></div>
+          <div class="tag">bill · payments · settle up</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div class="totals-strip">
+          <div class="tstat"><div class="num" id="totalAmt">₹0</div><div class="lab">Order total</div></div>
+          <div class="tstat"><div class="num" id="collectedAmt">₹0</div><div class="lab">Collected</div></div>
+          <div class="tstat"><div class="num" id="pendingAmt">₹0</div><div class="lab">Pending</div></div>
+        </div>
+        <div id="userPillCart" class="user-pill" style="display:none;"></div>
+      </div>
+    </header>
+
+    <div class="organizer-bar" id="organizerBar"></div>
+    <div id="bufferSection" style="display:none;margin-bottom:22px;"></div>
+    <div id="supportSection" style="display:none;margin-bottom:22px;"></div>
+
+    <!-- Order Summary Strip -->
+    <div id="orderSummaryStrip" class="order-summary-strip">
+      <div class="oss-cell">
+        <div class="oss-val" id="ossTotalItems">0</div>
+        <div class="oss-lab">Items</div>
+      </div>
+      <div class="oss-cell">
+        <div class="oss-val" id="ossSubtotal">₹0</div>
+        <div class="oss-lab">Food total</div>
+      </div>
+      <div class="oss-cell">
+        <div class="oss-val">₹48</div>
+        <div class="oss-lab">Fees + tax</div>
+      </div>
+      <div class="oss-cell oss-total">
+        <div class="oss-val" id="ossTotalBill">₹0</div>
+        <div class="oss-lab">Total bill</div>
+      </div>
+    </div>
+
+    <div id="calStrip" class="cal-strip" style="margin-bottom:22px;">
+      <div class="cal-strip-head">Calories so far, by person</div>
+      <div class="cal-strip-row" id="calStripRow"></div>
+    </div>
+
+    <div class="section-title"><span class="num">1</span> Full Order Bill</div>
+    <div id="billSection" class="bill-wrapper">
+      <div class="bill-empty-note">Add items to the cart to see the full bill here.</div>
+    </div>
+
+    <div class="section-title"><span class="num">2</span> Who pays what (and ate what)</div>
+    <div class="people-grid" id="peopleGrid"></div>
+
+    <footer>Demo prototype — payments are simulated, no real money moves. Calorie values are illustrative.</footer>
+  </div>
+
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+const RESTAURANTS = [
+  {
+    id:'california', name:'California Burrito', emoji:'🌯', cuisine:'Mexican · Fast Food',
+    rating:4.3, time:'25-35 min', badge:'popular',
+    desc:"Cali-style burritos, quesadillas and nachos",
+    menu:[
+      {name:'Chicken Burrito',    price:220, cal:620, mood:['hungry']},
+      {name:'Veg Burrito',        price:180, cal:510, mood:['hungry','healthy']},
+      {name:'Nachos & Cheese',    price:150, cal:480, mood:['lazy']},
+      {name:'Quesadilla',         price:190, cal:540, mood:['hungry','lazy']},
+      {name:'Burrito Bowl',       price:210, cal:590, mood:['hungry','healthy']},
+      {name:'Churros (4pc)',      price:100, cal:320, mood:['sweet']},
+      {name:'Lemonade',           price:60,  cal:90,  mood:['healthy','sweet']},
+    ]
+  },
+  {
+    id:'meghna', name:'Meghna Foods', emoji:'🍛', cuisine:'Biryani · South Indian',
+    rating:4.6, time:'30-40 min', badge:'popular',
+    desc:'Famous Hyderabadi dum biryani and curries',
+    menu:[
+      {name:'Chicken Biryani',    price:240, cal:780, mood:['hungry']},
+      {name:'Mutton Biryani',     price:290, cal:850, mood:['hungry']},
+      {name:'Veg Biryani',        price:180, cal:620, mood:['hungry']},
+      {name:'Chicken Curry',      price:200, cal:410, mood:['hungry','lazy']},
+      {name:'Raita',              price:40,  cal:80,  mood:['healthy']},
+      {name:'Gulab Jamun (2pc)',  price:70,  cal:300, mood:['sweet']},
+      {name:'Lassi',              price:60,  cal:160, mood:['sweet','lazy']},
+    ]
+  },
+  {
+    id:'anitha', name:"Anitha's Food Cafe", emoji:'🥘', cuisine:'North Indian · Home Style',
+    rating:4.4, time:'20-30 min', badge:null,
+    desc:'Homestyle dals, rotis and North Indian thalis',
+    menu:[
+      {name:'Dal Tadka',          price:130, cal:320, mood:['healthy','lazy']},
+      {name:'Butter Naan',        price:45,  cal:260, mood:['lazy']},
+      {name:'Paneer Tikka',       price:190, cal:410, mood:['hungry']},
+      {name:'Veg Thali',          price:160, cal:680, mood:['hungry','healthy']},
+      {name:'Chicken Curry',      price:210, cal:430, mood:['hungry']},
+      {name:'Kheer (bowl)',       price:80,  cal:280, mood:['sweet']},
+      {name:'Masala Chaas',       price:40,  cal:70,  mood:['healthy']},
+    ]
+  },
+  {
+    id:'smallmingos', name:'Small Mingos', emoji:'🍔', cuisine:'Burgers · Snacks · Quick Bites',
+    rating:4.1, time:'15-25 min', badge:'new',
+    desc:'Compact menu, big flavours — burgers and bites',
+    menu:[
+      {name:'Classic Burger',     price:120, cal:480, mood:['hungry','lazy']},
+      {name:'Chicken Wings (6pc)',price:160, cal:520, mood:['hungry']},
+      {name:'French Fries',       price:70,  cal:340, mood:['lazy']},
+      {name:'Veg Sandwich',       price:90,  cal:280, mood:['healthy','lazy']},
+      {name:'Milkshake',          price:100, cal:380, mood:['sweet']},
+      {name:'Cold Coffee',        price:80,  cal:210, mood:['sweet','lazy']},
+    ]
+  },
+  {
+    id:'bigmingos', name:'Big Mingos', emoji:'🍖', cuisine:'BBQ · Grill · American',
+    rating:4.5, time:'35-45 min', badge:null,
+    desc:'Full portions, slow-grilled meats and platters',
+    menu:[
+      {name:'BBQ Chicken Platter',price:350, cal:920, mood:['hungry']},
+      {name:'Grilled Fish',       price:300, cal:520, mood:['hungry','healthy']},
+      {name:'Loaded Nachos',      price:200, cal:640, mood:['hungry','lazy']},
+      {name:'Coleslaw',           price:60,  cal:110, mood:['healthy']},
+      {name:'Smoky Pulled Pork Bun',price:280,cal:740,mood:['hungry']},
+      {name:'Cheesecake Slice',   price:120, cal:420, mood:['sweet']},
+      {name:'Fresh Lime Soda',    price:60,  cal:70,  mood:['healthy']},
+    ]
+  },
+  {
+    id:'nandini', name:'Nandini', emoji:'☕', cuisine:'Tea · Coffee · Snacks',
+    rating:4.7, time:'10-20 min', badge:'popular',
+    desc:"Bangalore's fav — filter coffee, chai and tiffin",
+    menu:[
+      {name:'Filter Coffee',      price:30,  cal:60,  mood:['lazy','sweet']},
+      {name:'Masala Chai',        price:25,  cal:50,  mood:['lazy']},
+      {name:'Masala Dosa',        price:80,  cal:380, mood:['healthy','lazy']},
+      {name:'Idli Sambar (3pc)',  price:60,  cal:280, mood:['healthy']},
+      {name:'Vada (2pc)',         price:50,  cal:240, mood:['lazy']},
+      {name:'Rava Kesari',        price:60,  cal:310, mood:['sweet']},
+      {name:'Bun Butter Jam',     price:35,  cal:190, mood:['lazy','sweet']},
+    ]
+  },
+  {
+    id:'cornerhouse', name:'Corner House', emoji:'🍦', cuisine:'Ice Cream · Desserts',
+    rating:4.8, time:'15-25 min', badge:'popular',
+    desc:"Bangalore's iconic ice cream — Death by Chocolate since 1981",
+    menu:[
+      {name:'Death by Chocolate', price:220, cal:680, mood:['sweet']},
+      {name:'Hot Chocolate Fudge',price:180, cal:560, mood:['sweet']},
+      {name:'Fruit Salad Sundae', price:160, cal:380, mood:['sweet','healthy']},
+      {name:'Butterscotch Sundae',price:150, cal:420, mood:['sweet']},
+      {name:'Strawberry Shake',   price:130, cal:310, mood:['sweet']},
+      {name:'Brownie with Ice Cream',price:190, cal:520, mood:['sweet']},
+    ]
+  },
+  {
+    id:'tacobell', name:'Taco Bell', emoji:'🌮', cuisine:'Mexican · Fast Food',
+    rating:4.2, time:'20-30 min', badge:null,
+    desc:'Crunch wrap supremes, nachos and loaded burritos',
+    menu:[
+      {name:'Crunchwrap Supreme',  price:199, cal:540, mood:['hungry','lazy']},
+      {name:'Cheesy Nachos',       price:149, cal:420, mood:['lazy']},
+      {name:'Veg Burrito',         price:179, cal:480, mood:['hungry']},
+      {name:'Chicken Quesadilla',  price:219, cal:560, mood:['hungry']},
+      {name:'Mexican Pizza',       price:189, cal:510, mood:['hungry','lazy']},
+      {name:'Cinnabon Delights',   price:99,  cal:290, mood:['sweet']},
+      {name:'Limon',               price:79,  cal:80,  mood:['healthy','sweet']},
+    ]
+  },
+  {
+    id:'uru', name:'Uru Brewpark', emoji:'🍺', cuisine:'Continental · Bar Bites',
+    rating:4.5, time:'30-45 min', badge:null,
+    desc:'Craft brews and continental bites in a garden setting',
+    menu:[
+      {name:'Loaded Fries',        price:249, cal:580, mood:['hungry','lazy']},
+      {name:'Chicken Wings (8pc)', price:349, cal:620, mood:['hungry']},
+      {name:'Mushroom Bruschetta', price:199, cal:310, mood:['healthy']},
+      {name:'Smash Burger',        price:299, cal:680, mood:['hungry']},
+      {name:'Wood Fired Pizza',    price:349, cal:720, mood:['hungry','lazy']},
+      {name:'Mango Mousse',        price:179, cal:320, mood:['sweet']},
+    ]
+  },
+  {
+    id:'norwachai', name:'Norwa Chai', emoji:'🍵', cuisine:'Chai · Street Food',
+    rating:4.3, time:'10-15 min', badge:'new',
+    desc:'Specialty chai blends and street style snacks',
+    menu:[
+      {name:'Tandoor Chai',        price:50,  cal:90,  mood:['lazy']},
+      {name:'Kashmiri Kahwa',      price:70,  cal:60,  mood:['healthy']},
+      {name:'Cutting Chai',        price:25,  cal:45,  mood:['lazy']},
+      {name:'Samosa (2pc)',        price:40,  cal:240, mood:['lazy']},
+      {name:'Bread Pakoda',        price:50,  cal:280, mood:['lazy']},
+      {name:'Irani Chai + Osmania',price:80,  cal:180, mood:['lazy','sweet']},
+    ]
+  },
+  {
+    id:'empire', name:'Empire Restaurant', emoji:'🍗', cuisine:'North Indian · Mughlai',
+    rating:4.6, time:'25-35 min', badge:'popular',
+    desc:"Bangalore's legendary kebabs and biryani since 1956",
+    menu:[
+      {name:'Chicken Sheek Kebab', price:220, cal:490, mood:['hungry']},
+      {name:'Mutton Biryani',      price:280, cal:820, mood:['hungry']},
+      {name:'Chicken Tikka',       price:250, cal:440, mood:['hungry']},
+      {name:'Butter Naan',         price:40,  cal:250, mood:['lazy']},
+      {name:'Chicken Curry',       price:200, cal:410, mood:['hungry','lazy']},
+      {name:'Phirni',              price:90,  cal:280, mood:['sweet']},
+    ]
+  },
+  {
+    id:'belgianwaffles', name:'Belgian Waffles', emoji:'🧇', cuisine:'Desserts · Café',
+    rating:4.4, time:'15-25 min', badge:null,
+    desc:'Crispy Belgian waffles with artisan toppings',
+    menu:[
+      {name:'Classic Waffle',      price:149, cal:420, mood:['sweet']},
+      {name:'Nutella Waffle',      price:179, cal:560, mood:['sweet']},
+      {name:'Strawberry Cream',    price:169, cal:480, mood:['sweet']},
+      {name:'Fruit & Yogurt Waffle',price:159,cal:380, mood:['sweet','healthy']},
+      {name:'Lotus Biscoff Waffle',price:199, cal:620, mood:['sweet']},
+      {name:'Cold Coffee',         price:120, cal:210, mood:['sweet','lazy']},
+    ]
+  },
+  {
+    id:'howlers', name:'Howlers Food Truck', emoji:'🚚', cuisine:'Street Food · Fusion',
+    rating:4.3, time:'20-30 min', badge:'new',
+    desc:'Bold fusion street food from Bangalore streets',
+    menu:[
+      {name:'Korean Corn Dog',     price:149, cal:380, mood:['hungry','lazy']},
+      {name:'Desi Tacos (3pc)',    price:179, cal:420, mood:['hungry']},
+      {name:'Loaded Hot Dog',      price:159, cal:490, mood:['hungry','lazy']},
+      {name:'Street Noodles',      price:139, cal:360, mood:['lazy']},
+      {name:'Churro Bites',        price:99,  cal:290, mood:['sweet']},
+      {name:'Watermelon Slushie',  price:89,  cal:100, mood:['healthy','sweet']},
+    ]
+  },
+  {
+    id:'smashguys', name:'Smash Guys', emoji:'🍔', cuisine:'Smash Burgers · American',
+    rating:4.5, time:'20-30 min', badge:null,
+    desc:'Crispy smash patties, double stacked and loaded',
+    menu:[
+      {name:'Classic Smash Burger',price:199, cal:620, mood:['hungry']},
+      {name:'Double Smash',        price:279, cal:820, mood:['hungry']},
+      {name:'Smash Fries',         price:129, cal:380, mood:['lazy']},
+      {name:'Chicken Smash',       price:229, cal:640, mood:['hungry']},
+      {name:'Cheese Sauce Fries',  price:149, cal:420, mood:['lazy']},
+      {name:'Oreo Milkshake',      price:159, cal:490, mood:['sweet']},
+    ]
+  },
+  {
+    id:'rameshwaram', name:'Rameshwaram Cafe', emoji:'🥣', cuisine:'South Indian · Breakfast',
+    rating:4.9, time:'20-35 min', badge:'popular',
+    desc:"Bangalore's cult-favourite South Indian breakfast spot",
+    menu:[
+      {name:'Ghee Podi Idli',      price:120, cal:320, mood:['healthy']},
+      {name:'Benne Dosa',          price:100, cal:390, mood:['healthy','lazy']},
+      {name:'Vada Sambar',         price:80,  cal:280, mood:['healthy']},
+      {name:'Rava Kesari',         price:70,  cal:310, mood:['sweet']},
+      {name:'Filter Kaapi',        price:40,  cal:70,  mood:['lazy']},
+      {name:'Masala Dosa',         price:110, cal:380, mood:['healthy','lazy']},
+      {name:'Pongal',              price:90,  cal:340, mood:['healthy']},
+    ]
+  },
+];
+
+let selectedRestoId = null;
+
+function getMenu(){
+  if(!selectedRestoId) return [];
+  const resto = RESTAURANTS.find(r=>r.id===selectedRestoId);
+  if(!resto) return [];
+  return currentMood==='all' ? resto.menu : resto.menu.filter(m=>m.mood.includes(currentMood));
+}
+
+/* ─────────── SCREEN NAVIGATION ─────────── */
+function goScreen(name){
+  document.getElementById('screenHome').style.display = name==='home' ? 'block' : 'none';
+  document.getElementById('screenMenu').style.display = name==='menu' ? 'block' : 'none';
+  document.getElementById('screenCart').style.display = name==='cart' ? 'block' : 'none';
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(name==='cart'){
+    renderBill(); renderPeople(); renderCalStrip();
+    renderOrganizerBar(); recalcTotals();
+  }
+  if(name==='menu'){
+    renderCart(); recalcTotals(); updateCartBadge();
+  }
+  if(name==='home'){
+    renderRestoCards();
+  }
+}
+// expose to window so Firebase module can call these
+window.goScreen         = goScreen;
+
+function updateCartBadge(){
+  const badge = document.getElementById('menuCartBadge');
+  const count = document.getElementById('cartCountBadge');
+  if(!badge || !count) return;
+  if(cart.length > 0){
+    badge.style.display = 'flex';
+    count.textContent = cart.length;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function selectResto(id){
+  selectedRestoId = id;
+  currentMood = 'all';
+  document.querySelectorAll('.mood-chip').forEach(c=>c.classList.toggle('active', c.dataset.mood==='all'));
+  renderRestoCards();
+
+  // populate menu screen header
+  const r = RESTAURANTS.find(x=>x.id===id);
+  const nameEl = document.getElementById('menuRestoName');
+  const cuisineEl = document.getElementById('menuRestoCuisine');
+  if(nameEl) nameEl.textContent = r.emoji + ' ' + r.name;
+  if(cuisineEl) cuisineEl.textContent = r.cuisine;
+
+  // detail bar on menu screen
+  const bar = document.getElementById('menuRestoDetailBar');
+  if(bar){
+    bar.style.display='flex';
+    bar.innerHTML = `
+      <div class="rdb-emoji">${r.emoji}</div>
+      <div class="rdb-info">
+        <div class="rdb-name">${r.name}</div>
+        <div class="rdb-meta">${r.cuisine} · ${r.desc}</div>
+      </div>
+      <div class="rdb-stats">
+        <div class="rdb-stat"><div class="sv">★ ${r.rating}</div><div class="sl">Rating</div></div>
+        <div class="rdb-stat"><div class="sv">${r.time}</div><div class="sl">Delivery</div></div>
+        <div class="rdb-stat"><div class="sv">${r.menu.length}</div><div class="sl">Items</div></div>
+      </div>
+    `;
+  }
+
+  renderMenu();
+  renderPersonSelect();
+  goScreen('menu');
+}
+
+// ── Offer banner click → go to that restaurant ──
+function offerAction(restoId){
+  clearInterval(bannerInterval);
+  selectResto(restoId);
+}
+
+// ── Profile modal ────────────────────────────────
+window.showProfile = function(){
+  const existing = document.getElementById('profileModal');
+  if(existing){ existing.remove(); return; }
+  const user     = window._currentUser || null;
+  const name     = user?.name  || 'You';
+  const email    = user?.email || '—';
+  const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  const totalSpent = cart.reduce((s,c)=>s+c.price,0);
+  const totalItems = cart.length;
+  const totalCal   = cart.reduce((s,c)=>s+c.cal,0);
+  const overlay = document.createElement('div');
+  overlay.id = 'profileModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#0d0d1a;border:1px solid rgba(255,255,255,0.1);border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.7);">
+      <div style="background:linear-gradient(135deg,rgba(255,106,43,0.2),rgba(139,92,246,0.15));padding:26px 24px 20px;position:relative;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <button onclick="document.getElementById('profileModal').remove()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.08);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#FF6A2B,#e8521a);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 0 20px rgba(255,106,43,0.4);">${initials}</div>
+          <div>
+            <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fff;">${name}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:3px;">✉️ ${email}</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.07);">
+        ${[['₹'+totalSpent.toFixed(0),'Total','#FF6A2B'],[totalItems+' items','In cart','#34d399'],[totalCal+' kcal','Calories','#a78bfa']].map(([v,l,c])=>`
+          <div style="padding:16px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.07);">
+            <div style="font-family:Georgia,serif;font-size:17px;font-weight:700;color:${c};">${v}</div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.3);margin-top:3px;">${l}</div>
+          </div>`).join('')}
+      </div>
+      <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.3);margin-bottom:8px;">People in this order</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;">
+          ${people.map(p=>`<span style="background:rgba(255,106,43,0.12);color:#ff8c5a;border:1px solid rgba(255,106,43,0.2);font-size:12px;font-weight:600;padding:4px 11px;border-radius:20px;">${p}</span>`).join('')}
+        </div>
+      </div>
+      <div style="padding:14px 20px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="if(typeof showPastOrders==='function')showPastOrders();document.getElementById('profileModal').remove();"
+          style="flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;font-weight:600;font-size:13px;cursor:pointer;">
+          📦 Past orders
+        </button>
+        <button onclick="document.getElementById('profileModal').remove();showSettings();"
+          style="flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,106,43,0.3);background:rgba(255,106,43,0.1);color:#ff8c5a;font-weight:600;font-size:13px;cursor:pointer;">
+          ⚙️ Settings
+        </button>
+        <button onclick="doSignOut();document.getElementById('profileModal').remove();"
+          style="flex:1;padding:10px;border-radius:12px;border:1px solid rgba(248,113,113,0.2);background:rgba(248,113,113,0.1);color:#f87171;font-weight:600;font-size:13px;cursor:pointer;">
+          🚪 Sign out
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+};
+
+/* ═══════════════════════════════════════════
+   SETTINGS & THEME SYSTEM
+═══════════════════════════════════════════ */
+let currentTheme = localStorage.getItem('sp_theme') || 'dark';
+let currentFont  = localStorage.getItem('sp_font')  || 'normal';
+let reduceMotion = localStorage.getItem('sp_motion') === 'true';
+
+const THEMES = {
+  dark: {
+    '--bg':'#07070f',
+    '--panel':'rgba(255,255,255,0.06)',
+    '--ink':'#ffffff',
+    '--orange':'#FF6A2B',
+    '--orange-deep':'#ff8c5a',
+    '--green':'#34d399',
+    '--red':'#f87171',
+    '--yellow':'#fbbf24',
+    '--muted':'rgba(255,255,255,0.45)',
+    '--line':'rgba(255,255,255,0.08)',
+    '--glass-border':'rgba(255,255,255,0.12)',
+  },
+  light: {
+    '--bg':'#f5f0eb',
+    '--panel':'#ffffff',
+    '--ink':'#1a1a2e',
+    '--orange':'#e8521a',
+    '--orange-deep':'#c94210',
+    '--green':'#16a34a',
+    '--red':'#dc2626',
+    '--yellow':'#d97706',
+    '--muted':'rgba(0,0,0,0.45)',
+    '--line':'rgba(0,0,0,0.1)',
+    '--glass-border':'rgba(0,0,0,0.12)',
+  },
+  colorblind: {
+    // Deuteranopia-friendly palette (no red-green confusion)
+    '--bg':'#07070f',
+    '--panel':'rgba(255,255,255,0.06)',
+    '--ink':'#ffffff',
+    '--orange':'#4A90D9',      // blue instead of orange
+    '--orange-deep':'#7ab3e8', // light blue
+    '--green':'#F5A623',       // amber instead of green (no red-green confusion)
+    '--red':'#F5A623',         // also amber — red replaced
+    '--yellow':'#4A90D9',      // blue for highlights
+    '--muted':'rgba(255,255,255,0.5)',
+    '--line':'rgba(255,255,255,0.1)',
+    '--glass-border':'rgba(74,144,217,0.3)',
+  }
+};
+
+function applyTheme(theme){
+  currentTheme = theme;
+  localStorage.setItem('sp_theme', theme);
+  const vars = THEMES[theme] || THEMES.dark;
+  const root = document.documentElement;
+  Object.entries(vars).forEach(([k,v]) => root.style.setProperty(k, v));
+
+  // extra body bg for light mode
+  if(theme === 'light'){
+    document.documentElement.style.background = '#f5f0eb';
+    document.documentElement.style.color = '#1a1a2e';
+  } else {
+    document.documentElement.style.background = '#07070f';
+    document.documentElement.style.color = '#fff';
+  }
+
+  // colorblind: add pattern indicators to status tags
+  if(theme === 'colorblind'){
+    document.documentElement.setAttribute('data-cb', 'true');
+  } else {
+    document.documentElement.removeAttribute('data-cb');
+  }
+}
+
+function applyFont(size){
+  currentFont = size;
+  localStorage.setItem('sp_font', size);
+  const map = {small:'13px', normal:'15px', large:'18px'};
+  document.documentElement.style.fontSize = map[size] || '15px';
+}
+
+function applyMotion(reduce){
+  reduceMotion = reduce;
+  localStorage.setItem('sp_motion', reduce);
+  if(reduce){
+    const s = document.createElement('style');
+    s.id = 'no-motion-style';
+    s.textContent = '*{animation:none !important;transition:none !important;}';
+    document.head.appendChild(s);
+  } else {
+    document.getElementById('no-motion-style')?.remove();
+  }
+}
+
+// apply saved settings on load
+applyTheme(currentTheme);
+applyFont(currentFont);
+if(reduceMotion) applyMotion(true);
+
+window.showSettings = function(){
+  const ex = document.getElementById('settingsModal');
+  if(ex){ ex.remove(); return; }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'settingsModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(10px);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  const themeBtn = (id, label, emoji, desc, active) => `
+    <button onclick="applyTheme('${id}');renderSettingsThemes()"
+      style="flex:1;min-width:80px;padding:14px 10px;border-radius:14px;border:2px solid ${active?'#FF6A2B':'rgba(255,255,255,0.1)'};
+      background:${active?'rgba(255,106,43,0.15)':'rgba(255,255,255,0.04)'};
+      color:#fff;cursor:pointer;transition:all .2s;text-align:center;"
+      id="themeBtn_${id}">
+      <div style="font-size:24px;margin-bottom:6px;">${emoji}</div>
+      <div style="font-weight:700;font-size:13px;">${label}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;">${desc}</div>
+    </button>`;
+
+  overlay.innerHTML = `
+    <div style="background:#0d0d1a;border:1px solid rgba(255,255,255,0.1);border-radius:24px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.7);">
+<div style="padding:20px 24px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fff;">⚙️ Settings</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">Personalise your SplitPlate</div>
+        </div>
+        <button onclick="document.getElementById('settingsModal').remove()"
+          style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+      </div>
+
+      <div style="padding:20px 24px;max-height:75vh;overflow-y:auto;">
+<div style="margin-bottom:24px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.4);margin-bottom:12px;">🎨 Theme</div>
+          <div id="themeButtons" style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${themeBtn('dark',   'Dark',       '🌑', 'Default dark', currentTheme==='dark')}
+            ${themeBtn('light',  'Light',      '☀️',  'Bright mode',  currentTheme==='light')}
+            ${themeBtn('colorblind','Colour Blind','👁️','Blue palette', currentTheme==='colorblind')}
+          </div>
+          ${currentTheme==='colorblind' ? `
+            <div style="margin-top:10px;background:rgba(74,144,217,0.1);border:1px solid rgba(74,144,217,0.25);border-radius:10px;padding:10px 12px;font-size:12px;color:rgba(255,255,255,0.6);">
+              ♿ Colour blind mode uses a blue/amber palette optimised for Deuteranopia (most common type). All status indicators also show text labels.
+            </div>` : ''}
+        </div>
+<div style="margin-bottom:24px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.4);margin-bottom:12px;">🔤 Text size</div>
+          <div style="display:flex;gap:8px;">
+            ${['small','normal','large'].map(s=>`
+              <button onclick="applyFont('${s}');document.getElementById('settingsModal').remove();showSettings();"
+                style="flex:1;padding:12px;border-radius:12px;border:2px solid ${currentFont===s?'#FF6A2B':'rgba(255,255,255,0.1)'};
+                background:${currentFont===s?'rgba(255,106,43,0.15)':'rgba(255,255,255,0.04)'};
+                color:#fff;cursor:pointer;font-size:${s==='small'?'12px':s==='large'?'16px':'14px'};font-weight:600;">
+                ${s==='small'?'A':''}${s==='normal'?'A':''}${s==='large'?'A':''} ${s.charAt(0).toUpperCase()+s.slice(1)}
+              </button>`).join('')}
+          </div>
+        </div>
+<div style="margin-bottom:24px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.4);margin-bottom:12px;">✨ Motion & animations</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;">
+            <div>
+              <div style="font-weight:600;color:#fff;font-size:14px;">Reduce animations</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">Removes transitions and effects</div>
+            </div>
+            <button onclick="applyMotion(!reduceMotion);document.getElementById('settingsModal').remove();showSettings();"
+              style="width:48px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;
+              background:${reduceMotion?'#FF6A2B':'rgba(255,255,255,0.15)'};transition:background .2s;">
+              <div style="position:absolute;top:3px;${reduceMotion?'right:3px':'left:3px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:all .2s;"></div>
+            </button>
+          </div>
+        </div>
+<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+          <div style="font-weight:600;color:#fff;font-size:14px;margin-bottom:8px;">📱 About SplitPlate</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.45);line-height:1.8;">
+            Version 1.0.0 · Built with ❤️ for group orders<br>
+            15 restaurants · Multi-delivery partners<br>
+            Firebase backend · AI chatbot powered by Claude
+          </div>
+        </div>
+<div style="background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.15);border-radius:12px;padding:14px 16px;">
+          <div style="font-weight:600;color:#f87171;font-size:13px;margin-bottom:10px;">🔧 Admin tools</div>
+          <button onclick="if(confirm('Delete all Firebase accounts EXCEPT jishu & anya?'))cleanupAccounts();"
+            style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.1);color:#f87171;font-weight:600;font-size:13px;cursor:pointer;">
+            🗑️ Remove all accounts except jishu & anya
+          </button>
+          <button onclick="if(typeof saveToFirebase==='function'){saveToFirebase();}"
+            style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,106,43,0.3);background:rgba(255,106,43,0.08);color:#ff8c5a;font-weight:600;font-size:13px;cursor:pointer;margin-top:8px;">
+            🔄 Force sync current order to Firebase
+          </button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+};
+
+function renderSettingsThemes(){
+  // update button borders live when theme changes
+  document.querySelectorAll('[id^="themeBtn_"]').forEach(btn=>{
+    const t = btn.id.replace('themeBtn_','');
+    btn.style.borderColor = t===currentTheme ? '#FF6A2B' : 'rgba(255,255,255,0.1)';
+    btn.style.background  = t===currentTheme ? 'rgba(255,106,43,0.15)' : 'rgba(255,255,255,0.04)';
+  });
+}
+
+function renderRestoCards(){
+  const list = document.getElementById('restoList');
+  if(!list){ console.warn('restoList not found'); return; }
+  if(!window.RESTAURANTS && typeof RESTAURANTS === 'undefined'){ console.warn('RESTAURANTS not defined'); return; }
+  const R = typeof RESTAURANTS !== 'undefined' ? RESTAURANTS : window.RESTAURANTS;
+  if(!R || !R.length){ list.innerHTML = '<p style="color:rgba(255,255,255,0.4);padding:20px;">No restaurants found</p>'; return; }
+  try {
+    list.innerHTML = R.map(r => `
+      <div class="resto-row ${selectedRestoId===r.id?'selected':''}" onclick="selectResto('${r.id}')">
+        <div class="rr-emoji">${r.emoji}</div>
+        <div class="rr-info">
+          <div class="rr-name">
+            ${r.name}
+            ${r.badge ? `<span class="rr-badge ${r.badge}">${r.badge}</span>` : ''}
+          </div>
+          <div class="rr-cuisine">${r.cuisine}</div>
+          <div class="rr-desc">${r.desc}</div>
+        </div>
+        <div class="rr-right">
+          <div class="rr-rating"><span class="star">★</span>${r.rating}</div>
+          <div class="rr-time">🕐 ${r.time}</div>
+        </div>
+        <div class="rr-select-indicator">${selectedRestoId===r.id?'✓':''}</div>
+      </div>
+    `).join('');
+  } catch(e){ console.error('renderRestoCards error:', e); }
+}
+
+/* ── Offers Banner ── */
+let currentSlide = 0;
+const TOTAL_SLIDES = 5;
+let bannerInterval;
+
+function initOffersBanner(){
+  const dots = document.getElementById('offersDots');
+  if(!dots) return;
+  dots.innerHTML = Array.from({length:TOTAL_SLIDES}, (_,i) =>
+    `<div class="odot ${i===0?'active':''}" onclick="goToSlide(${i})"></div>`
+  ).join('');
+  startBannerAuto();
+}
+
+function goToSlide(i){
+  currentSlide = i;
+  const track = document.getElementById('offersTrack');
+  if(track) track.style.transform = `translateX(-${i*100}%)`;
+  document.querySelectorAll('.odot').forEach((d,idx) => d.classList.toggle('active', idx===i));
+}
+
+function startBannerAuto(){
+  clearInterval(bannerInterval);
+  bannerInterval = setInterval(() => {
+    goToSlide((currentSlide + 1) % TOTAL_SLIDES);
+  }, 3500);
+}
+
+// drag/swipe support for banner
+function initBannerSwipe(){
+  const track = document.getElementById('offersTrack');
+  if(!track) return;
+  let startX = 0;
+  track.addEventListener('mousedown', e => { startX = e.clientX; clearInterval(bannerInterval); });
+  track.addEventListener('mouseup', e => {
+    const diff = startX - e.clientX;
+    if(Math.abs(diff) > 40) goToSlide(diff > 0 ? Math.min(currentSlide+1,TOTAL_SLIDES-1) : Math.max(currentSlide-1,0));
+    startBannerAuto();
+  });
+  track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; clearInterval(bannerInterval); });
+  track.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if(Math.abs(diff) > 40) goToSlide(diff > 0 ? Math.min(currentSlide+1,TOTAL_SLIDES-1) : Math.max(currentSlide-1,0));
+    startBannerAuto();
+  });
+}
+
+function renderRestoDetailBar(){
+  const bar = document.getElementById('restoDetailBar');
+  if(!bar) return;
+  if(!selectedRestoId){ bar.style.display='none'; return; }
+  const r = RESTAURANTS.find(x=>x.id===selectedRestoId);
+  bar.style.display='flex';
+  bar.innerHTML = `
+    <div class="rdb-emoji">${r.emoji}</div>
+    <div class="rdb-info">
+      <div class="rdb-name">${r.name}</div>
+      <div class="rdb-meta">${r.cuisine} · ${r.desc}</div>
+    </div>
+    <div class="rdb-stats">
+      <div class="rdb-stat"><div class="sv">★ ${r.rating}</div><div class="sl">Rating</div></div>
+      <div class="rdb-stat"><div class="sv">${r.time}</div><div class="sl">Delivery</div></div>
+      <div class="rdb-stat"><div class="sv">${r.menu.length}</div><div class="sl">Items</div></div>
+    </div>
+  `;
+}
+
+const DELIVERY_FEE = 40;
+const PLATFORM_FEE = 8;
+const TAX_RATE = 0.05;
+const CALORIE_BUDGET = 2000; // for the bar visualization
+
+const ORGANIZER = "You";
+let people = ['You'];
+let cart = [];
+let payState = {};
+let billPaidByOrganizer = false;
+let billPaidTime = null;
+let removedAfterPayment = {};
+let paybackState = {};
+
+// Buffer timer state
+const BUFFER_SECS = 120;
+let orderState = 'unpaid';
+let bufferSecsLeft = BUFFER_SECS;
+let bufferInterval = null;
+let sureUnlocked = true;
+let bufferRemovals = [];
+
+const DELIVERY_PARTNERS = [
+  {name:'Ravi Kumar',  rating:'⭐ 4.8', bike:'KA01 AB 1234', avatar:'🧑'},
+  {name:'Suresh Babu', rating:'⭐ 4.9', bike:'KA02 CD 5678', avatar:'👨'},
+  {name:'Mahesh R.',   rating:'⭐ 4.7', bike:'KA03 EF 9012', avatar:'🧔'},
+  {name:'Dinesh S.',   rating:'⭐ 4.8', bike:'KA04 GH 3456', avatar:'👦'},
+  {name:'Kiran M.',    rating:'⭐ 4.9', bike:'KA05 IJ 7890', avatar:'🧑'},
+];
+
+function startBufferTimer(){
+  orderState = 'buffer';
+  bufferRemovals = [];
+  renderBufferSection();
+}
+
+function updateBufferUI(){
+  renderBufferRemovals();
+}
+
+function renderBufferSection(){
+  const sec = document.getElementById('bufferSection');
+  sec.style.display = 'block';
+  sec.innerHTML = `
+    <div class="buffer-box" id="bufferBox" style="--progress:100%;">
+      <div class="buffer-top">
+        <div class="buffer-left">
+          <div class="buffer-icon">🛍️</div>
+          <div class="buffer-text">
+            <div class="bt-title">Order ready — review before confirming</div>
+            <div class="bt-sub">You can still remove items below. Click "Place Order" when you are ready.</div>
+          </div>
+        </div>
+      </div>
+      <div class="buffer-changes">
+        <div class="bc-title">Items removed after payment</div>
+        <div id="bufferRemovalList"><div class="bc-empty">No changes yet — your order is exactly as placed.</div></div>
+      </div>
+      <button class="buffer-sure-btn" id="sureBtnEl" onclick="confirmOrder()">
+        ✅ I am sure about my order <span class="sure-badge">PLACE ORDER</span>
+      </button>
+    </div>
+  `;
+}
+
+function renderBufferRemovals(){
+  const list = document.getElementById('bufferRemovalList');
+  if(!list) return;
+  if(bufferRemovals.length === 0){
+    list.innerHTML = '<div class="bc-empty">No changes yet.</div>';
+    return;
+  }
+  list.innerHTML = bufferRemovals.map((r, i) => `
+    <div class="bc-item">
+      <div class="bc-left">
+        <span>🗑️</span>
+        <div>
+          <div class="bc-name">${r.item}</div>
+          <div class="bc-for">removed from ${r.person}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="bc-amt">−₹${r.price}</span>
+        <button class="${r.refunded ? 'bc-refund-btn done' : 'bc-refund-btn'}"
+          onclick="${r.refunded ? '' : 'bufferRefund('+i+')'}"
+          ${r.refunded ? 'disabled' : ''}>
+          ${r.refunded ? '✓ Refunded' : '↩ Refund ₹'+r.price}
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function confirmOrder(){
+  clearInterval(bufferInterval);
+  orderState = 'sent';
+  const sec  = document.getElementById('bufferSection');
+  const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+  // group by restaurant
+  const groups = {};
+  cart.forEach(c => {
+    const k = c.resto || 'Your Order';
+    if(!groups[k]) groups[k] = {items:[], total:0};
+    groups[k].items.push(c);
+    groups[k].total += c.price;
+  });
+  const restos = Object.keys(groups);
+  const isMulti = restos.length > 1;
+  const shuffled = [...DELIVERY_PARTNERS].sort(()=>Math.random()-0.5);
+
+  const cards = restos.map((resto, i) => {
+    const p   = shuffled[i % shuffled.length];
+    const eta = Math.floor(18 + Math.random() * 15);
+    const n   = groups[resto].items.length;
+    return `
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px 18px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FF6A2B,#e8521a);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${p.avatar}</div>
+            <div>
+              <div style="font-weight:700;color:#fff;font-size:14px;">Delivery ${i+1}${isMulti ? ' · '+resto : ''}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">${p.name} · ${p.rating} · ${p.bike}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px;">${n} item${n!==1?'s':''} · ₹${groups[resto].total.toFixed(0)}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:Georgia,serif;font-size:24px;font-weight:800;color:#FF6A2B;">${eta} min</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Est. arrival</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);display:flex;flex-wrap:wrap;gap:5px;">
+          ${groups[resto].items.slice(0,4).map(it=>`<span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);font-size:11px;padding:2px 9px;border-radius:20px;color:rgba(255,255,255,0.7);">${it.item}</span>`).join('')}
+          ${n>4?`<span style="font-size:11px;color:rgba(255,255,255,0.4);">+${n-4} more</span>`:''}
+        </div>
+      </div>`;
+  }).join('');
+
+  sec.innerHTML = `
+    <div style="background:rgba(15,13,26,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,rgba(52,211,153,0.18),rgba(16,185,129,0.08));padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:28px;">✅</span>
+          <div>
+            <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#fff;">Order confirmed!</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Confirmed at ${time} · ${restos.length} delivery partner${restos.length>1?'s':''} dispatched simultaneously</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.25);padding:6px 14px;border-radius:20px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#34d399;animation:pulse 1s infinite;"></div>
+          <span style="font-size:12px;font-weight:700;color:#34d399;">Live tracking</span>
+        </div>
+      </div>
+      <div style="padding:16px 18px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.35);margin-bottom:12px;">
+          ${isMulti ? restos.length+' partners dispatched at the same time 🚀' : 'Your delivery partner'}
+        </div>
+        ${cards}
+      </div>
+      <div style="padding:0 18px 18px;display:flex;gap:10px;">
+        <button onclick="if(typeof showPastOrders==='function')showPastOrders()"
+          style="flex:1;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:#fff;font-weight:700;font-size:13px;cursor:pointer;">
+          📦 View orders
+        </button>
+        <button onclick="startNewOrder()"
+          style="flex:1;padding:11px;border-radius:12px;border:none;background:linear-gradient(135deg,#FF6A2B,#e8521a);color:#fff;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 4px 16px rgba(255,106,43,0.4);">
+          🆕 New order
+        </button>
+      </div>
+    </div>`;
+
+  document.querySelectorAll('.rm').forEach(b=>{b.disabled=true;b.style.opacity='0.3';b.title='Order sent';});
+  if(typeof saveFinalOrder==='function') saveFinalOrder();
+}
+
+
+function renderBill(){
+  const sec = document.getElementById('billSection');
+  if(!cart.length){
+    sec.innerHTML = '<div class="bill-empty-note">Add items to the cart to see the full bill here.</div>';
+    return;
+  }
+
+  const subtotal = getSubtotal();
+  const tax = subtotal * TAX_RATE;
+  const grandTotal = subtotal + DELIVERY_FEE + PLATFORM_FEE + tax;
+  const peopleOrdering = people.filter(p => cart.some(c => c.person === p));
+  const sharedPerPerson = peopleOrdering.length > 0
+    ? (DELIVERY_FEE + PLATFORM_FEE) / peopleOrdering.length
+    : 0;
+
+  const now = new Date();
+  const orderNo = 'SP-' + Math.floor(10000 + Math.random()*90000);
+  const dateStr = now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  const timeStr = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+  // per-person blocks
+  const peopleBlocks = people.map(p => {
+    const items = cart.filter(c => c.person === p);
+    const removed = removedAfterPayment[p] || [];
+    const allItems = [...items, ...removed];
+    if(!allItems.length) return '';
+
+    const itemSubtotal = items.reduce((s,c)=>s+c.price,0);
+    const itemTax = itemSubtotal * TAX_RATE;
+    const personTotal = itemSubtotal + sharedPerPerson + itemTax;
+    const refundAmt = refundState[p]?.refundAmt || 0;
+    const netAmt = Math.max(0, personTotal - refundAmt);
+
+    const st = payState[p]?.status || 'unpaid';
+    const isOrg = p === ORGANIZER;
+    const badgeClass = isOrg ? 'organizer' : st === 'paid' ? 'paid' : st === 'qr_sent' ? 'qr' : 'unpaid';
+    const badgeLabel = isOrg ? 'Organiser' : st === 'paid' ? 'Paid ✓' : st === 'qr_sent' ? 'QR Sent' : 'Unpaid';
+
+    return `
+      <div class="bill-person-block">
+        <div class="bpb-head">
+          <div class="bpb-name">
+            ${p}${isOrg ? ' (you)' : ''}
+            <span class="bpb-badge ${badgeClass}">${badgeLabel}</span>
+          </div>
+          <div class="bpb-subtotal">₹${netAmt.toFixed(0)}</div>
+        </div>
+        ${allItems.map(it => {
+          const isRemoved = removed.find(r=>r.item===it.item);
+          return `
+          <div class="bill-item-row">
+            <span class="bir-name ${isRemoved?'bir-refunded':''}">${it.item}${isRemoved?' <span style="font-size:10px;color:var(--red);">(removed)</span>':''}</span>
+            <span class="bir-cal">${it.cal} kcal</span>
+            <span class="bir-price ${isRemoved?'bir-refunded':''}">₹${it.price}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+  }).join('');
+
+  // summary totals
+  const totalRefunds = Object.values(refundState).reduce((s,r)=>s+(r.refundAmt||0),0);
+  const collected = Object.entries(payState)
+    .filter(([p,v]) => v.status==='paid' && p !== ORGANIZER)
+    .reduce((s,[p]) => s + personAmount(p), 0);
+  const pending = people
+    .filter(p => p!==ORGANIZER && payState[p]?.status !== 'paid')
+    .reduce((s,p)=>s+personAmount(p),0);
+
+  sec.innerHTML = `
+    <div class="bill-wrapper" style="border:none;border-radius:0;">
+
+      <div class="bill-header">
+        <div class="bh-left">
+          <div class="bh-brand">Split<span>Plate</span></div>
+          <div class="bh-tagline">GROUP ORDER INVOICE</div>
+        </div>
+        <div class="bh-right">
+          <div class="bh-label">Order No.</div>
+          <div class="bh-orderno">${orderNo}</div>
+          <div class="bh-datetime">${dateStr} · ${timeStr}</div>
+        </div>
+      </div>
+
+      <div class="bill-meta">
+        <div class="bm-cell">
+          <div class="bm-label">People</div>
+          <div class="bm-val">${people.length}</div>
+        </div>
+        <div class="bm-cell">
+          <div class="bm-label">Total Items</div>
+          <div class="bm-val">${cart.length}</div>
+        </div>
+        <div class="bm-cell">
+          <div class="bm-label">Paid by</div>
+          <div class="bm-val">${billPaidByOrganizer ? ORGANIZER + ' (full)' : 'Pending'}</div>
+        </div>
+        <div class="bm-cell">
+          <div class="bm-label">Refunds</div>
+          <div class="bm-val" style="color:${totalRefunds?'var(--red)':'var(--muted)'}">
+            ${totalRefunds ? '−₹'+totalRefunds.toFixed(0) : '—'}
+          </div>
+        </div>
+      </div>
+
+      <div class="bill-body">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:14px 0 4px;">
+          Itemised by person
+        </div>
+        ${peopleBlocks}
+
+        <div class="bill-shared-block">
+          <div class="bsb-title">Shared charges (split equally across ${people.length} people)</div>
+          <div class="bsb-row"><span>Delivery fee</span><span>₹${DELIVERY_FEE} ÷ ${people.length} = ₹${sharedPerPerson.toFixed(0)}/person</span></div>
+          <div class="bsb-row"><span>Platform fee</span><span>₹${PLATFORM_FEE} ÷ ${people.length} = ₹${(PLATFORM_FEE/people.length).toFixed(0)}/person</span></div>
+          <div class="bsb-row"><span>GST / Taxes (5% on food)</span><span>Per person's item total</span></div>
+        </div>
+      </div>
+
+      <div class="bill-totals">
+        <div>
+          <div class="bt-row"><span class="label">Food subtotal</span><span>₹${subtotal.toFixed(0)}</span></div>
+          <div class="bt-row"><span class="label">Delivery fee</span><span>₹${DELIVERY_FEE}</span></div>
+          <div class="bt-row"><span class="label">Platform fee</span><span>₹${PLATFORM_FEE}</span></div>
+          <div class="bt-row"><span class="label">Taxes (5%)</span><span>₹${tax.toFixed(0)}</span></div>
+          ${totalRefunds ? `<hr class="bt-divider"><div class="bt-row red"><span>Total refunds</span><span>−₹${totalRefunds.toFixed(0)}</span></div>` : ''}
+        </div>
+        <div>
+          <div class="bt-row"><span class="label">Amount collected</span><span class="${collected?'':'label'}">₹${collected.toFixed(0)}</span></div>
+          <div class="bt-row red"><span class="label">Still pending</span><span>₹${pending.toFixed(0)}</span></div>
+          <hr class="bt-divider">
+          <div class="bt-row bold"><span>Grand Total</span><span>₹${(grandTotal - totalRefunds).toFixed(0)}</span></div>
+        </div>
+      </div>
+
+      <div class="bill-grand">
+        <span class="bg-label">Total you paid Swiggy</span>
+        <span class="bg-amt">₹${grandTotal.toFixed(0)}</span>
+      </div>
+
+      <div class="bill-status-bar">
+        <div class="bsb-cell">
+          <div class="bsc-val orange">₹${grandTotal.toFixed(0)}</div>
+          <div class="bsc-lab">Order Total</div>
+        </div>
+        <div class="bsb-cell">
+          <div class="bsc-val green">₹${collected.toFixed(0)}</div>
+          <div class="bsc-lab">Collected Back</div>
+        </div>
+        <div class="bsb-cell">
+          <div class="bsc-val red">₹${pending.toFixed(0)}</div>
+          <div class="bsc-lab">Still Pending</div>
+        </div>
+        ${totalRefunds ? `<div class="bsb-cell">
+          <div class="bsc-val red">₹${totalRefunds.toFixed(0)}</div>
+          <div class="bsc-lab">Refunded</div>
+        </div>` : ''}
+      </div>
+
+      <div class="bill-print-row">
+        <button class="bill-print-btn" onclick="printBill()">🖨️ Print / Save Bill</button>
+      </div>
+    </div>
+  `;
+}
+
+function printBill(){
+  const content = document.querySelector('#billSection .bill-wrapper').innerHTML;
+  const win = window.open('','_blank');
+  win.document.write(`
+    <html><head><title>SplitPlate Bill</title>
+    <style>
+      *{box-sizing:border-box;}
+      body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;color:#2B1B12;max-width:600px;margin:0 auto;}
+      .bill-header{background:#2B1B12;color:#fff;padding:22px 26px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+      .bh-brand{font-family:Georgia,serif;font-size:22px;font-weight:700;}
+      .bh-brand span{color:#FF6A2B;}
+      .bh-tagline{font-size:11px;opacity:0.65;margin-top:2px;}
+      .bh-right{text-align:right;}
+      .bh-label,.bsc-lab,.bm-label,.bsb-title{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#8A7768;}
+      .bh-orderno{font-family:Georgia,serif;font-size:15px;font-weight:700;color:#fff;margin-top:2px;}
+      .bh-datetime{font-size:11px;opacity:0.65;color:#fff;margin-top:3px;}
+      .bill-meta{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #F0DFC9;}
+      .bm-cell{padding:12px 16px;border-right:1px solid #F0DFC9;}
+      .bm-cell:last-child{border-right:none;}
+      .bm-val{font-size:14px;font-weight:700;margin-top:3px;}
+      .bill-body{padding:0 20px;}
+      .bill-person-block{border-bottom:1px solid #F0DFC9;padding:14px 0;}
+      .bpb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+      .bpb-name{font-family:Georgia,serif;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+      .bpb-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;}
+      .bpb-badge.organizer{background:#2B1B12;color:#fff;}
+      .bpb-badge.paid{background:#E6F4EA;color:#2E8B57;}
+      .bpb-badge.unpaid{background:#FCE9E9;color:#D14848;}
+      .bpb-subtotal{font-family:Georgia,serif;font-size:15px;font-weight:700;}
+      .bill-item-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;font-size:12.5px;padding:4px 0 4px 4px;border-bottom:1px dashed #F5EAD8;}
+      .bir-cal{color:#2E8B57;font-size:11.5px;text-align:right;}
+      .bir-price{font-weight:600;text-align:right;}
+      .bill-shared-block{background:#FFFDF9;border-radius:8px;padding:12px;margin:12px 0;border:1px dashed #F0DFC9;}
+      .bsb-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;color:#8A7768;}
+      .bsb-row span:last-child{font-weight:600;color:#2B1B12;}
+      .bill-totals{border-top:2px solid #2B1B12;padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+      .bt-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;}
+      .bt-row.bold{font-weight:700;font-size:14px;}
+      .bt-row.red{color:#D14848;font-weight:700;}
+      .label{color:#8A7768;}
+      .bt-divider{border:none;border-top:1px dashed #F0DFC9;margin:6px 0;}
+      .bill-grand{background:#2B1B12;color:#fff;display:flex;justify-content:space-between;align-items:baseline;padding:14px 22px;}
+      .bg-label{font-size:12px;opacity:0.75;text-transform:uppercase;letter-spacing:0.5px;}
+      .bg-amt{font-family:Georgia,serif;font-size:26px;font-weight:700;}
+      .bill-status-bar{display:flex;border-top:1px solid #F0DFC9;}
+      .bsb-cell{flex:1;padding:10px 14px;text-align:center;border-right:1px solid #F0DFC9;}
+      .bsb-cell:last-child{border-right:none;}
+      .bsc-val{font-family:Georgia,serif;font-size:15px;font-weight:700;}
+      .bsc-val.green{color:#2E8B57;} .bsc-val.red{color:#D14848;} .bsc-val.orange{color:#E2501A;}
+      .bill-print-row{display:none;}
+      .bir-refunded{text-decoration:line-through;color:#8A7768;}
+    </style></head>
+    <body>${content}</body></html>
+  `);
+  win.document.close();
+  win.print();
+}
+
+function renderCalStrip(){
+  const row = document.getElementById('calStripRow');
+  if(people.length === 0){
+    row.innerHTML = '<div class="cal-chip-empty">Add people to see their calorie count here.</div>';
+    return;
+  }
+  row.innerHTML = people.map(p => {
+    const cal = personCalories(p);
+    const pct = Math.min(100, (cal / CALORIE_BUDGET) * 100);
+    const cls = cal < CALORIE_BUDGET*0.6 ? 'green' : (cal < CALORIE_BUDGET ? 'yellow' : 'red');
+    return `
+      <div class="cal-chip">
+        <div class="cal-chip-top">
+          <span class="cal-chip-name">${p}</span>
+          <span class="cal-chip-num ${cls}">${cal} kcal</span>
+        </div>
+        <div class="cal-chip-track"><div class="cal-chip-fill ${cls}" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function init(){
+  // always start at login — Firebase module will redirect after auth
+  document.getElementById('screenLogin').style.display = 'block';
+  document.getElementById('screenHome').style.display  = 'none';
+  document.getElementById('screenMenu').style.display  = 'none';
+  document.getElementById('screenCart').style.display  = 'none';
+
+  renderPersonSelect();
+  renderMenu();
+  renderCart();
+  renderPeople(); renderCalStrip(); renderOrganizerBar(); renderBill();
+  recalcTotals();
+  initOffersBanner();
+  initBannerSwipe();
+}
+
+function renderPersonSelect(){
+  const sel = document.getElementById('personSelect');
+  sel.innerHTML = people.map(p => `<option value="${p}">${p}</option>`).join('');
+}
+
+let currentMood = 'all';
+let unreadCount = 0;
+
+function setMood(mood){
+  currentMood = mood;
+  document.querySelectorAll('.mood-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.mood === mood);
+  });
+  renderMenu();
+}
+
+function renderMenu(){
+  const list = document.getElementById('menuList');
+  if(!list) return;
+  if(!selectedRestoId){
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:14px 4px;text-align:center;">← Select a restaurant above first</div>';
+    return;
+  }
+  const filtered = getMenu();
+  const resto = RESTAURANTS.find(r=>r.id===selectedRestoId);
+  list.innerHTML = filtered.length ? filtered.map(m => {
+    const idx = resto.menu.indexOf(m);
+    return `
+    <div class="menu-item" onclick="addMenuItem('${selectedRestoId}',${idx})">
+      <span class="mname">${m.name}</span>
+      <span class="mmeta">₹${m.price} · ${m.cal} kcal</span>
+    </div>`;
+  }).join('') : '<div style="color:var(--muted);font-size:13px;padding:14px 4px;text-align:center;">No items match this mood</div>';
+}
+
+function updateMenuCalStrip(){
+  const strip = document.getElementById('menuCalStrip');
+  const row   = document.getElementById('menuCalRow');
+  if(!strip || !row) return;
+  const active = people.filter(p => cart.some(c=>c.person===p));
+  if(active.length === 0){ strip.style.display='none'; return; }
+  strip.style.display = 'block';
+  row.innerHTML = active.map(p => {
+    const cal  = cart.filter(c=>c.person===p).reduce((s,c)=>s+c.cal,0);
+    const pct  = Math.min(100,(cal/2000)*100);
+    const clr  = cal<1200 ? '#34d399' : cal<2000 ? '#fbbf24' : '#f87171';
+    return `
+      <div style="flex:1;min-width:120px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:9px 12px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
+          <span style="font-weight:700;color:#fff;font-size:12.5px;">${p}</span>
+          <span style="font-size:12px;font-weight:700;color:${clr};">${cal} kcal</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${clr};border-radius:5px;transition:width .3s;"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function addMenuItem(restoId, i){
+  const person = document.getElementById('personSelect').value;
+  if(!person) return;
+  const resto = RESTAURANTS.find(r=>r.id===restoId);
+  if(!resto) return;
+  const m = resto.menu[i];
+  const existing = cart.find(c => c.item===m.name && c.person===person && c.resto===resto.name);
+  if(existing){
+    existing.qty = (existing.qty||1) + 1;
+    existing.price = existing.basePrice * existing.qty;
+    existing.cal   = existing.baseCal   * existing.qty;
+  } else {
+    cart.push({item:m.name, price:m.price, cal:m.cal, basePrice:m.price, baseCal:m.cal, qty:1, person, resto:resto.name, restoId});
+  }
+  renderCart(); renderPeople(); renderCalStrip(); renderOrganizerBar(); renderBill(); recalcTotals();
+  updateCartBadge(); updateMenuCalStrip();
+  if(typeof saveToFirebase==='function') saveToFirebase();
+}
+
+// addPersonBtn — fetch name from Firebase by email
+document.getElementById('addPersonBtn').onclick = async () => {
+  const emailInput = document.getElementById('newPersonEmail');
+  const msgEl      = document.getElementById('addPersonMsg');
+  const email      = emailInput.value.trim().toLowerCase();
+  if(!email){ msgEl.style.display='block'; msgEl.style.color='#f87171'; msgEl.textContent='Please enter an email'; return; }
+  msgEl.style.display='block'; msgEl.style.color='rgba(255,255,255,0.5)'; msgEl.textContent='Looking up…';
+  // call fetchPersonByEmail exposed from Firebase module
+  if(typeof window.fetchPersonByEmail === 'function'){
+    const result = await window.fetchPersonByEmail(email);
+    if(!result){
+      msgEl.style.color='#f87171'; msgEl.textContent='❌ No account found for ' + email;
+      return;
+    }
+    if(people.includes(result.name)){ msgEl.style.color='#fbbf24'; msgEl.textContent='⚠️ ' + result.name + ' already added'; return; }
+    people.push(result.name);
+    emailInput.value='';
+    msgEl.style.color='#34d399'; msgEl.textContent='✅ ' + result.name + ' added!';
+    setTimeout(()=>{ msgEl.style.display='none'; },2000);
+    renderPersonSelect();
+    renderPeople(); renderCalStrip(); renderOrganizerBar(); renderBill();
+  }
+};
+
+function removeItem(idx){
+  const removed = cart[idx];
+  if(orderState === 'sent'){
+    alert('Order already sent to restaurant — no more changes possible!');
+    return;
+  }
+  if(billPaidByOrganizer && removed){
+    const person = removed.person;
+    if(!removedAfterPayment[person]) removedAfterPayment[person] = [];
+    removedAfterPayment[person].push({item: removed.item, price: removed.price, cal: removed.cal});
+    // also track in buffer window for the buffer panel
+    if(orderState === 'buffer'){
+      bufferRemovals.push({item: removed.item, price: removed.price, person, refunded: false});
+      renderBufferRemovals();
+    }
+  }
+  cart.splice(idx,1);
+  renderCart(); renderPeople(); renderCalStrip(); renderOrganizerBar(); renderBill(); recalcTotals();
+}
+
+function changeQty(idx, delta){
+  if(orderState==='sent'){ alert('Order already sent!'); return; }
+  const item = cart[idx];
+  if(!item) return;
+  // ensure basePrice/baseCal exist for all items (including custom)
+  if(!item.basePrice) item.basePrice = item.price / (item.qty||1);
+  if(!item.baseCal)   item.baseCal   = item.cal   / (item.qty||1);
+  const newQty = (item.qty||1) + delta;
+  if(newQty <= 0){ removeItem(idx); return; }
+  item.qty   = newQty;
+  item.price = parseFloat((item.basePrice * newQty).toFixed(2));
+  item.cal   = Math.round(item.baseCal * newQty);
+  renderCart(); renderPeople(); renderCalStrip(); renderOrganizerBar(); renderBill(); recalcTotals();
+  updateCartBadge();
+}
+
+function renderCart(){
+  const list = document.getElementById('cartList');
+  if(!list) return;
+  if(cart.length === 0){
+    list.innerHTML = '<div class="empty-note">No items yet — add something tasty.</div>';
+    return;
+  }
+  list.innerHTML = cart.map((c,i) => {
+    // ensure base values always set
+    if(!c.basePrice) c.basePrice = c.price / (c.qty||1);
+    if(!c.baseCal)   c.baseCal   = c.cal   / (c.qty||1);
+    const qty = c.qty || 1;
+    return `
+    <div class="cart-line">
+      <div class="cart-line-info">
+        <div class="iname">${c.item}</div>
+        <div class="ifor">
+          for <b>${c.person}</b>
+          ${c.resto ? `· <span style="background:rgba(255,106,43,0.15);color:var(--orange-deep);font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600;">${c.resto}</span>` : ''}
+          · <span class="ical">${c.cal} kcal</span>
+        </div>
+      </div>
+      <div class="qty-pill">
+        <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
+        <div class="qty-num">${qty}</div>
+        <button class="qty-btn" onclick="changeQty(${i},+1)">+</button>
+      </div>
+      <div class="iprice">₹${c.price}</div>
+      <button class="rm" onclick="removeItem(${i})">✕</button>
+    </div>`
+  }).join('');
+}
+
+function getSubtotal(){
+  return cart.reduce((s,c)=>s+c.price,0);
+}
+
+function recalcTotals(){
+  const subtotal = getSubtotal();
+  const tax = subtotal * TAX_RATE;
+  const grandTotal = subtotal + DELIVERY_FEE + PLATFORM_FEE + tax;
+
+  // tax line in menu screen
+  const taxEl = document.getElementById('taxLine');
+  if(taxEl) taxEl.textContent = `₹${tax.toFixed(0)}`;
+
+  // header totals in cart screen
+  const totalEl = document.getElementById('totalAmt');
+  if(totalEl) totalEl.textContent = `₹${grandTotal.toFixed(0)}`;
+
+  // ── Menu screen live total box ──
+  const menuBox   = document.getElementById('menuTotalBox');
+  const menuAmt   = document.getElementById('menuTotalAmt');
+  const menuBreak = document.getElementById('menuTotalBreakdown');
+  const menuGrid  = document.getElementById('menuPerPersonGrid');
+  const proceedBtn = document.getElementById('proceedBtn');
+
+  if(menuBox){
+    if(cart.length > 0){
+      menuBox.style.display = 'block';
+      if(menuAmt) menuAmt.textContent = `₹${grandTotal.toFixed(0)}`;
+      if(menuBreak) menuBreak.innerHTML =
+        `Food ₹${subtotal}<br>Delivery ₹${DELIVERY_FEE}<br>Platform ₹${PLATFORM_FEE}<br>Tax ₹${tax.toFixed(0)}`;
+      // per-person split cards
+      if(menuGrid){
+        const ordering = people.filter(p => cart.some(c=>c.person===p));
+        if(ordering.length > 0){
+          menuGrid.innerHTML = ordering.map(p => {
+            const amt = personAmount(p);
+            return `<div class="mtb-per-card">
+              <div class="pc-name">${p}</div>
+              <div class="pc-amt">₹${amt.toFixed(0)}</div>
+            </div>`;
+          }).join('');
+        } else {
+          menuGrid.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:12px;">Add items and tag a person</div>';
+        }
+      }
+      if(proceedBtn) proceedBtn.disabled = false;
+    } else {
+      menuBox.style.display = 'none';
+      if(proceedBtn) proceedBtn.disabled = true;
+    }
+  }
+
+  // ── Cart screen order summary strip ──
+  const ossItems   = document.getElementById('ossTotalItems');
+  const ossSub     = document.getElementById('ossSubtotal');
+  const ossTotal   = document.getElementById('ossTotalBill');
+  if(ossItems) ossItems.textContent = cart.length;
+  if(ossSub)   ossSub.textContent   = `₹${subtotal}`;
+  if(ossTotal) ossTotal.textContent = `₹${grandTotal.toFixed(0)}`;
+
+  // ── Cart screen collected/pending ──
+  let collected = 0, pending = 0;
+  if(billPaidByOrganizer){
+    collected += grandTotal;
+    people.forEach(p => {
+      if(p === ORGANIZER) return;
+      const amt = personAmount(p);
+      const st = payState[p]?.status;
+      if(st !== 'paid') pending += amt;
+    });
+  } else {
+    pending = grandTotal;
+  }
+  const colEl = document.getElementById('collectedAmt');
+  const penEl = document.getElementById('pendingAmt');
+  if(colEl) colEl.textContent = `₹${collected.toFixed(0)}`;
+  if(penEl) penEl.textContent = `₹${pending.toFixed(0)}`;
+
+  // sync to Firebase on every state change
+  if(typeof saveToFirebase === 'function') saveToFirebase();
+}
+
+function personAmount(person){
+  const items = cart.filter(c => c.person === person);
+  const itemTotal = items.reduce((s,c)=>s+c.price,0);
+  // only charge fees to people who actually ordered something
+  if(itemTotal === 0) return 0;
+  // count only people who have items in cart
+  const peopleOrdering = people.filter(p => cart.some(c => c.person === p));
+  const sharedFees = peopleOrdering.length > 0
+    ? (DELIVERY_FEE + PLATFORM_FEE) / peopleOrdering.length
+    : 0;
+  const tax = itemTotal * TAX_RATE;
+  return itemTotal + sharedFees + tax;
+}
+
+function personCalories(person){
+  return cart.filter(c => c.person === person).reduce((s,c)=>s+c.cal,0);
+}
+
+function payFullBillNow(){
+  if(billPaidByOrganizer) return;
+  const subtotal   = getSubtotal();
+  const grandTotal = subtotal + DELIVERY_FEE + PLATFORM_FEE + subtotal * TAX_RATE;
+
+  // Show "Are you sure?" modal
+  const overlay = document.createElement('div');
+  overlay.id = 'confirmPayOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#0d0d1a;border:1px solid rgba(255,255,255,0.12);border-radius:20px;width:100%;max-width:380px;padding:32px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,0.7);">
+      <div style="font-size:42px;margin-bottom:12px;">🧾</div>
+      <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">Are you sure?</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.55);margin-bottom:6px;">You're about to pay the full bill</div>
+      <div style="font-family:Georgia,serif;font-size:36px;font-weight:800;color:#FF6A2B;margin:14px 0;">₹${grandTotal.toFixed(0)}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:24px;">This includes delivery, platform fee & taxes</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('confirmPayOverlay').remove()"
+          style="flex:1;padding:13px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">
+          No, go back
+        </button>
+        <button onclick="confirmFullPayment()"
+          style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#FF6A2B,#e8521a);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(255,106,43,0.4);">
+          Yes, pay ₹${grandTotal.toFixed(0)}
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function confirmFullPayment(){
+  document.getElementById('confirmPayOverlay')?.remove();
+  billPaidByOrganizer = true;
+  const now = new Date();
+  billPaidTime = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  payState[ORGANIZER] = {status:'paid', time: billPaidTime};
+  renderOrganizerBar(); renderPeople(); renderCalStrip(); renderBill(); recalcTotals();
+  startBufferTimer();
+  if(typeof saveToFirebase==='function') saveToFirebase();
+}
+
+function renderOrganizerBar(){
+  const bar = document.getElementById('organizerBar');
+  const sec = document.getElementById('supportSection');
+  const total = getSubtotal() + DELIVERY_FEE + PLATFORM_FEE + getSubtotal()*TAX_RATE;
+  if(billPaidByOrganizer){
+    bar.className = 'organizer-bar settled';
+    bar.innerHTML = `
+      <div class="ob-left">
+        <div class="ob-title">You've paid the full bill — ₹${total.toFixed(0)}</div>
+        <div class="ob-sub">Paid at ${billPaidTime} · now waiting for everyone else to pay you back</div>
+      </div>
+      <div class="ob-done-tag">✓ Settled with Swiggy</div>
+    `;
+    sec.style.display = 'block';
+    if(!sec.dataset.rendered) renderSupportBanner();
+  } else {
+    bar.className = 'organizer-bar';
+    bar.innerHTML = `
+      <div class="ob-left">
+        <div class="ob-title">You're paying the full bill upfront</div>
+        <div class="ob-sub">Everyone else will pay you back individually, not Swiggy directly</div>
+      </div>
+      <button class="ob-btn" onclick="payFullBillNow()">Pay full bill now — ₹${total.toFixed(0)}</button>
+    `;
+    sec.style.display = 'none';
+  }
+}
+
+/* ─────────── SUPPORT SECTION ─────────── */
+let chatHistory = [];
+let chatOpen = false;
+let humanOpen = false;
+
+function renderSupportBanner(){
+  const sec = document.getElementById('supportSection');
+  sec.dataset.rendered = '1';
+
+  const unpaidPeople = people.filter(p => p !== ORGANIZER && payState[p]?.status !== 'paid');
+  const smartNudge = unpaidPeople.length > 0 && billPaidByOrganizer
+    ? `<div class="smart-nudge">
+        <span class="sn-text">💡 <b>${unpaidPeople.join(', ')}</b> ${unpaidPeople.length > 1 ? "haven't" : "hasn't"} paid yet — send a reminder?</span>
+        <button onclick="sendQRToAll()">Send QR to all</button>
+      </div>` : '';
+
+  sec.innerHTML = `
+    <div class="support-banner">
+      <div class="sb-left">
+        <div class="sb-logo">🍽️</div>
+        <div class="sb-text">
+          <div class="sb-title">Need help with your order?</div>
+          <div class="sb-sub">AI support · Human agents · FAQs</div>
+        </div>
+      </div>
+      <div class="sb-btns">
+        <button class="sb-btn ai" onclick="toggleChat()" id="chatToggleBtn">🤖 AI Assistant</button>
+        <button class="sb-btn human" onclick="toggleHuman()">👤 Human Support</button>
+        <button class="sb-btn faq" onclick="toggleFaq()">📋 FAQs</button>
+      </div>
+    </div>
+
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="chat-logo">🤖</div>
+          <div>
+            <div class="chat-title">SplitPlate Assistant</div>
+            <div class="chat-sub">Powered by AI · replies instantly</div>
+          </div>
+        </div>
+        <button class="chat-close" onclick="toggleChat()">✕</button>
+      </div>
+      ${smartNudge}
+      <div class="chat-msgs" id="chatMsgs"></div>
+      <div class="quick-chips">
+        <span class="qchip" onclick="quickAsk('Why is my bill high?')">💰 Why is my bill high?</span>
+        <span class="qchip" onclick="quickAsk('Someone has not paid yet')">⏳ Someone hasn't paid</span>
+        <span class="qchip" onclick="quickAsk('How do refunds work?')">↩ How do refunds work?</span>
+        <span class="qchip" onclick="quickAsk('Explain calorie tracking')">🥗 Calorie tracking</span>
+        <span class="qchip" onclick="quickAsk('How is the bill split?')">🧮 How is bill split?</span>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" placeholder="Type your question…" onkeydown="if(event.key==='Enter') sendChat()">
+        <button class="chat-send" id="chatSend" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+
+    <div class="human-panel" id="humanPanel">
+      <div class="human-header">
+        <div class="human-header-left">
+          <div class="human-logo">👤</div>
+          <div>
+            <div class="chat-title">Human Support</div>
+            <div class="chat-sub">Real agents · avg wait 2 mins</div>
+          </div>
+        </div>
+        <button class="chat-close" onclick="toggleHuman()">✕</button>
+      </div>
+      <div class="human-body">
+        <div class="human-status"><span class="green-dot"></span> 3 agents online right now</div>
+        <div id="humanOpts" class="human-options">
+          <div class="human-opt" onclick="connectHuman('call')"><div class="hopt-icon">📞</div><div>Request a Call</div><div class="hopt-label">We'll call you in ~2 mins</div></div>
+          <div class="human-opt" onclick="connectHuman('chat')"><div class="hopt-icon">💬</div><div>Live Chat</div><div class="hopt-label">Connect with an agent now</div></div>
+          <div class="human-opt" onclick="connectHuman('email')"><div class="hopt-icon">📧</div><div>Email Support</div><div class="hopt-label">Reply within 2 hours</div></div>
+          <div class="human-opt" onclick="connectHuman('ticket')"><div class="hopt-icon">🎫</div><div>Raise a Ticket</div><div class="hopt-label">Track your issue anytime</div></div>
+        </div>
+        <div id="humanConnecting" style="display:none;text-align:center;padding:20px;">
+          <div class="spinner" style="margin:0 auto 12px;"></div>
+          <div style="font-weight:600;" id="connectingLabel">Connecting you…</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">Please wait a moment</div>
+        </div>
+        <div id="humanConnected" style="display:none;padding:14px;"></div>
+      </div>
+    </div>
+
+    <div class="faq-panel" id="faqPanel">
+      <div class="faq-header">
+        <div class="faq-header-left">
+          <div class="faq-logo">📋</div>
+          <div>
+            <div class="chat-title">Frequently Asked Questions</div>
+            <div class="chat-sub">Quick answers, no waiting needed</div>
+          </div>
+        </div>
+        <button class="chat-close" style="color:#fff;" onclick="toggleFaq()">✕</button>
+      </div>
+      ${[
+        ['How is my bill calculated?','Your bill = your item total + your equal share of delivery fee and platform fee + 5% tax on your items. Refunded items are deducted too.'],
+        ["What if someone doesn't pay?",'Their amount stays as "Pending" in the totals strip. You can resend the QR anytime. The order is already settled with Swiggy — this just helps you collect your share back.'],
+        ['How long do refunds take?','Refunds process within 2–3 business days to the original payment method. A receipt with a unique ID is always available on the person card.'],
+        ['Can I add someone after paying?','Yes — add them via the New Person field. Shared fees will be recalculated across the new total and everyone\'s amounts update instantly.'],
+        ['Why split delivery fee equally?','Delivery and platform charges don\'t depend on order size — everyone benefits equally from the delivery, so it\'s divided equally. Food costs follow who ordered what.'],
+        ['Can I refund just one item?','Yes — the refund modal lets you tick specific items. Each refund generates a separate receipt with a unique ID.'],
+        ['What does the calorie bar mean?','Each person\'s bar shows their share of a 2000 kcal daily budget. Green = under 60%, yellow = 60–100%, red = over budget. It\'s a guide, not a limit.'],
+      ].map(([q,a],i) => `
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaqItem(${i})"><span>${q}</span><span class="faq-arrow">▼</span></button>
+          <div class="faq-a" id="faqA${i}">${a}</div>
+        </div>`).join('')}
+    </div>
+  `;
+
+  renderChatMsgs();
+}
+
+function sendQRToAll(){
+  people.filter(p => p !== ORGANIZER && payState[p]?.status !== 'paid').forEach(p => sendQR(p));
+}
+
+function toggleChat(){
+  chatOpen = !chatOpen;
+  document.getElementById('chatPanel')?.classList.toggle('open', chatOpen);
+  if(chatOpen){ humanOpen=false; document.getElementById('humanPanel')?.classList.remove('open'); document.getElementById('faqPanel')?.classList.remove('open'); renderChatMsgs(); }
+}
+
+function toggleHuman(){
+  humanOpen = !humanOpen;
+  document.getElementById('humanPanel')?.classList.toggle('open', humanOpen);
+  if(humanOpen){ chatOpen=false; document.getElementById('chatPanel')?.classList.remove('open'); document.getElementById('faqPanel')?.classList.remove('open'); }
+}
+
+function toggleFaq(){
+  const p = document.getElementById('faqPanel');
+  if(!p) return;
+  const open = p.classList.toggle('open');
+  if(open){ chatOpen=false; humanOpen=false; document.getElementById('chatPanel')?.classList.remove('open'); document.getElementById('humanPanel')?.classList.remove('open'); }
+}
+
+function toggleFaqItem(i){
+  const a = document.getElementById('faqA'+i);
+  if(!a) return;
+  const open = a.classList.toggle('open');
+  a.previousElementSibling?.classList.toggle('open', open);
+}
+
+function renderChatMsgs(){
+  const msgs = document.getElementById('chatMsgs');
+  if(!msgs) return;
+  if(chatHistory.length === 0){
+    msgs.innerHTML = `<div class="msg-wrap">
+      <div class="msg bot">Hey! 👋 I'm your SplitPlate assistant. Ask me anything about your order, bill, or payments!</div>
+      <div class="msg-feedback">
+        <button class="thumb-btn" onclick="thumbFeedback(this,'up')">👍 Helpful</button>
+        <button class="thumb-btn" onclick="thumbFeedback(this,'down')">👎 Not helpful</button>
+      </div>
+    </div>`;
+  } else {
+    msgs.innerHTML = chatHistory.map(m => {
+      if(m.role === 'user') return `<div class="msg user">${m.content}</div>`;
+      return `<div class="msg-wrap">
+        <div class="msg bot">${m.content}</div>
+        <div class="msg-feedback">
+          <button class="thumb-btn" onclick="thumbFeedback(this,'up')">👍 Helpful</button>
+          <button class="thumb-btn" onclick="thumbFeedback(this,'down')">👎 Not helpful</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function thumbFeedback(btn, type){
+  btn.closest('.msg-feedback').querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function quickAsk(text){
+  if(!chatOpen) toggleChat();
+  setTimeout(() => {
+    const input = document.getElementById('chatInput');
+    if(input){ input.value = text; sendChat(); }
+  }, 100);
+}
+
+function connectHuman(type){
+  document.getElementById('humanOpts').style.display='none';
+  document.getElementById('humanConnecting').style.display='block';
+  const labels = {call:'Scheduling your callback…',chat:'Finding an available agent…',email:'Setting up your email thread…',ticket:'Creating your support ticket…'};
+  document.getElementById('connectingLabel').textContent = labels[type] || 'Connecting…';
+
+  setTimeout(()=>{
+    document.getElementById('humanConnecting').style.display='none';
+    const conn = document.getElementById('humanConnected');
+    conn.style.display='block';
+
+    const agents = [{name:'Priya S.',meta:'Senior Support Agent · 3 yrs',rating:'⭐⭐⭐⭐⭐ 4.9 · 1,240 resolved',avatar:'👩'},{name:'Arjun M.',meta:'Billing Specialist · 2 yrs',rating:'⭐⭐⭐⭐⭐ 4.8 · 980 resolved',avatar:'👨'},{name:'Sneha R.',meta:'Refunds Expert · 4 yrs',rating:'⭐⭐⭐⭐⭐ 4.9 · 2,100 resolved',avatar:'👩'}];
+    const agent = agents[Math.floor(Math.random()*agents.length)];
+    const ticketId = 'SP-' + Math.floor(Math.random()*90000+10000);
+    const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+    const trackerSteps = type === 'ticket'
+      ? [{label:'Raised',time:now,done:true},{label:'Reviewing',time:'~5 mins',active:true},{label:'Resolved',time:'Pending',done:false}]
+      : [{label:'Connected',time:now,done:true},{label:'In Progress',time:'Now',active:true},{label:'Closed',time:'Pending',done:false}];
+
+    const trackerHtml = `
+      <div class="issue-tracker">
+        <div class="it-title">${type === 'ticket' ? 'Ticket ' + ticketId + ' · Live Status' : 'Session Status'}</div>
+        <div class="it-steps">
+          ${trackerSteps.map(s => `
+            <div class="it-step ${s.done?'done':''} ${s.active?'active':''}">
+              <div class="it-dot">${s.done?'✓':s.active?'●':''}</div>
+              <div class="it-label">${s.label}</div>
+              <div class="it-time">${s.time}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+
+    conn.innerHTML = `
+      <div class="agent-card">
+        <div class="agent-avatar">${agent.avatar}</div>
+        <div class="agent-info">
+          <div class="agent-name">${agent.name}</div>
+          <div class="agent-meta">${agent.meta}</div>
+          <div class="agent-rating">${agent.rating}</div>
+        </div>
+        <button class="agent-chat-btn">Start →</button>
+      </div>
+      ${trackerHtml}`;
+  }, 2000);
+}
+
+async function sendChat(){
+  const input = document.getElementById('chatInput');
+  const msgs = document.getElementById('chatMsgs');
+  const sendBtn = document.getElementById('chatSend');
+  const text = input?.value.trim();
+  if(!text || !msgs) return;
+  input.value='';
+  if(sendBtn) sendBtn.disabled = true;
+
+  msgs.innerHTML += `<div class="msg user">${text}</div>`;
+  const typingId = 'typing_' + Date.now();
+  msgs.innerHTML += `<div class="msg bot-typing" id="${typingId}"><div class="bot-avatar">🤖</div><div class="dot-typing"><span></span><span></span><span></span></div></div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const orderSummary = `People: ${people.join(', ')}. Cart: ${cart.map(c=>c.item+'(₹'+c.price+','+c.cal+'kcal for '+c.person+')').join('; ')}. Delivery ₹${DELIVERY_FEE}, Platform ₹${PLATFORM_FEE}, Tax 5%. Bill paid by organizer: ${billPaidByOrganizer?'Yes at '+billPaidTime:'No'}. Payment statuses: ${people.map(p=>p+': '+(payState[p]?.status||'unpaid')).join(', ')}.`;
+
+  chatHistory.push({role:'user', content: text});
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6', max_tokens:1000,
+        system:`You are SplitPlate Assistant, a friendly helpful support chatbot for a food group bill-split app. Be warm, concise, casual. Use emojis sparingly. Current order: ${orderSummary}`,
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || "Sorry, couldn't get a response. Try again!";
+    chatHistory.push({role:'assistant', content: reply});
+    document.getElementById(typingId)?.remove();
+    msgs.innerHTML += `<div class="msg-wrap"><div class="msg bot">${reply}</div><div class="msg-feedback"><button class="thumb-btn" onclick="thumbFeedback(this,'up')">👍 Helpful</button><button class="thumb-btn" onclick="thumbFeedback(this,'down')">👎 Not helpful</button></div></div>`;
+  } catch(e){
+    document.getElementById(typingId)?.remove();
+    msgs.innerHTML += `<div class="msg bot">Oops — ${e.message}. Try again! 🙏</div>`;
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+  if(sendBtn) sendBtn.disabled = false;
+  input?.focus();
+}
+
+function sendQR(person){
+  if(!billPaidByOrganizer) return;
+  payState[person] = {status:'qr_sent'};
+  renderPeople(); renderCalStrip(); renderBill(); recalcTotals();
+
+  // simulate person paying after seeing the QR on their phone
+  const delay = 2500 + Math.random()*2000;
+  setTimeout(() => {
+    if(payState[person]?.status === 'qr_sent'){
+      const now = new Date();
+      const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      payState[person] = {status:'paid', time};
+      renderPeople(); renderCalStrip(); renderOrganizerBar(); renderBill(); recalcTotals();
+    }
+  }, delay);
+}
+
+/* ─────────── REFUND SYSTEM ─────────── */
+let refundState = {}; // person -> {refundedItems:[{item,price,cal}], refundAmt, reason, time}
+
+function payBackPerson(person){
+  const removed = removedAfterPayment[person] || [];
+  const amt = removed.reduce((s,i)=>s+i.price, 0);
+  if(!amt) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  paybackState[person] = {amt, time, paid: true};
+
+  // also auto-file a refund record for receipt purposes
+  const date = now.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+  const refId = 'SP-RF-' + Math.floor(Math.random()*900000+100000);
+  const prev = refundState[person] || {refundedItems:[], refundAmt:0};
+  refundState[person] = {
+    refundedItems: [...prev.refundedItems, ...removed],
+    refundAmt: prev.refundAmt + amt,
+    reason: 'Item removed after payment',
+    time, date, refId
+  };
+
+  renderPeople(); recalcTotals();
+  showReceipt(person, removed, amt, 'Item removed after payment', time, date, refId);
+}
+
+function openRefundModal(person){
+  const items = cart.filter(c => c.person === person);
+  const removed = removedAfterPayment[person] || [];
+  const allItems = [...items, ...removed.filter(r => !items.find(i=>i.item===r.item))];
+  if(!allItems.length){ alert('No items to refund for ' + person); return; }
+
+  const existing = refundState[person]?.refundedItems?.map(r=>r.item) || [];
+  const removedNames = removed.map(r=>r.item);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'rmodal-overlay';
+  overlay.id = 'refundOverlay';
+  overlay.innerHTML = `
+    <div class="rmodal">
+      <div class="rmodal-head">
+        <div class="rh-title">Refund for ${person}</div>
+        <div class="rh-sub">Select items to refund · removed items pre-selected</div>
+      </div>
+      <div class="rmodal-body">
+        <div class="rmodal-label">Items</div>
+        ${allItems.map((it) => {
+          const alreadyRefunded = existing.includes(it.item);
+          const wasRemoved = removedNames.includes(it.item);
+          return `
+          <label class="refund-item-row">
+            <input type="checkbox" class="refund-check"
+              data-price="${it.price}" data-name="${it.item}" data-cal="${it.cal || 0}"
+              ${alreadyRefunded ? 'disabled checked' : wasRemoved ? 'checked' : ''}>
+            <span class="ri-name">
+              ${it.item}
+              ${wasRemoved ? '<span style="background:#FFE8D4;color:var(--orange-deep);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;">removed</span>' : ''}
+              ${alreadyRefunded ? '<span style="color:var(--muted);font-size:11px;"> (already refunded)</span>' : ''}
+            </span>
+            <span class="ri-price">−₹${it.price}</span>
+          </label>`;
+        }).join('')}
+
+        <div class="refund-total-row">
+          <span class="rt-label">Refund total</span>
+          <span class="rt-amt" id="refundTotalAmt">₹0</span>
+        </div>
+
+        <div class="rmodal-reason">
+          <select id="refundReason">
+            <option value="">Select reason…</option>
+            <option ${removed.length ? 'selected' : ''}>Item removed after payment</option>
+            <option>Item was missing from order</option>
+            <option>Wrong item delivered</option>
+            <option>Item was stale / bad quality</option>
+            <option>Order cancelled</option>
+            <option>Duplicate charge</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="rmodal-btns">
+          <button class="rprocess-btn" id="rprocessBtn" onclick="processRefund('${person}')" disabled>Process Refund</button>
+          <button class="rcancel-btn" onclick="closeRefundModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.querySelectorAll('.refund-check').forEach(cb => {
+    cb.addEventListener('change', updateRefundTotal);
+  });
+  updateRefundTotal(); // trigger on open so removed items auto-show total
+}
+
+function updateRefundTotal(){
+  const checks = document.querySelectorAll('.refund-check:checked:not(:disabled)');
+  const total = Array.from(checks).reduce((s,c) => s + parseFloat(c.dataset.price), 0);
+  const el = document.getElementById('refundTotalAmt');
+  if(el) el.textContent = `₹${total.toFixed(0)}`;
+  const btn = document.getElementById('rprocessBtn');
+  const reason = document.getElementById('refundReason')?.value;
+  if(btn) btn.disabled = total === 0;
+}
+
+function closeRefundModal(){
+  document.getElementById('refundOverlay')?.remove();
+}
+
+function processRefund(person){
+  const checks = document.querySelectorAll('.refund-check:checked:not(:disabled)');
+  const reason = document.getElementById('refundReason')?.value || 'Not specified';
+  const refundedItems = Array.from(checks).map(c => ({
+    item: c.dataset.name,
+    price: parseFloat(c.dataset.price),
+    cal: parseFloat(c.dataset.cal)
+  }));
+  if(!refundedItems.length) return;
+
+  const refundAmt = refundedItems.reduce((s,i)=>s+i.price,0);
+  const now = new Date();
+  const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const date = now.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+  const refId = 'SP-RF-' + Math.floor(Math.random()*900000+100000);
+
+  // merge with any existing refund
+  const prev = refundState[person] || {refundedItems:[], refundAmt:0};
+  refundState[person] = {
+    refundedItems: [...prev.refundedItems, ...refundedItems],
+    refundAmt: prev.refundAmt + refundAmt,
+    reason, time, date, refId
+  };
+
+  closeRefundModal();
+  renderPeople(); renderCalStrip(); renderBill(); recalcTotals();
+  showReceipt(person, refundedItems, refundAmt, reason, time, date, refId);
+}
+
+function showReceipt(person, refItems, refAmt, reason, time, date, refId){
+  const personAmt = personAmount(person);
+  const netAmt = personAmt - refAmt;
+  const overlay = document.createElement('div');
+  overlay.className = 'receipt-overlay';
+  overlay.id = 'receiptOverlay';
+  overlay.innerHTML = `
+    <div class="receipt-box">
+      <div class="receipt-inner" id="receiptPrintable">
+        <div class="receipt-logo">🍽️</div>
+        <div class="receipt-brand">Split<span>Plate</span></div>
+        <div class="receipt-tagline">Refund Receipt</div>
+        <hr class="receipt-divider">
+
+        <div class="receipt-row"><span class="label">Receipt ID</span><span>${refId}</span></div>
+        <div class="receipt-row"><span class="label">Date</span><span>${date}</span></div>
+        <div class="receipt-row"><span class="label">Time</span><span>${time}</span></div>
+        <div class="receipt-row"><span class="label">Customer</span><span>${person}</span></div>
+        <div class="receipt-row"><span class="label">Reason</span><span>${reason}</span></div>
+        <hr class="receipt-divider">
+
+        <div class="rmodal-label">Refunded Items</div>
+        <div class="receipt-items">
+          ${refItems.map(i=>`
+            <div class="receipt-item">
+              <span>${i.item}</span>
+              <span style="color:var(--red);">−₹${i.price}</span>
+            </div>
+          `).join('')}
+        </div>
+        <hr class="receipt-divider">
+
+        <div class="receipt-row"><span class="label">Original bill</span><span>₹${personAmt.toFixed(0)}</span></div>
+        <div class="receipt-row red"><span>Refund amount</span><span>−₹${refAmt.toFixed(0)}</span></div>
+        <div class="receipt-row bold"><span>Net amount owed</span><span>₹${Math.max(0,netAmt).toFixed(0)}</span></div>
+        <hr class="receipt-divider">
+
+        <div class="receipt-stamp-wrap">
+          <span class="receipt-stamp">REFUND APPROVED</span>
+        </div>
+        <div class="receipt-footer">Refund will reflect within 2–3 business days<br>SplitPlate · Powered by Swiggy</div>
+      </div>
+      <div class="receipt-actions">
+        <button class="ract-print" onclick="printReceipt()">🖨️ Print / Save PDF</button>
+        <button class="ract-close" onclick="document.getElementById('receiptOverlay').remove()">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function printReceipt(){
+  const content = document.getElementById('receiptPrintable').innerHTML;
+  const win = window.open('','_blank');
+  win.document.write(`
+    <html><head><title>SplitPlate Refund Receipt</title>
+    <style>
+      body{font-family:'Segoe UI',sans-serif;max-width:360px;margin:30px auto;color:#2B1B12;}
+      .receipt-brand{font-family:Georgia,serif;font-size:20px;font-weight:700;text-align:center;}
+      .receipt-brand span{color:#E2501A;}
+      .receipt-logo{text-align:center;font-size:26px;}
+      .receipt-tagline{text-align:center;font-size:11px;color:#8A7768;margin-bottom:14px;}
+      hr{border:none;border-top:1px dashed #F0DFC9;margin:12px 0;}
+      .receipt-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+      .receipt-row.red{color:#D14848;font-weight:700;}
+      .receipt-row.bold{font-weight:700;}
+      .label{color:#8A7768;}
+      .rmodal-label{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#8A7768;margin:8px 0 6px;}
+      .receipt-item{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid #F9F0E6;}
+      .receipt-stamp-wrap{text-align:center;margin:14px 0 6px;}
+      .receipt-stamp{font-family:Georgia,serif;font-size:14px;font-weight:700;color:#2E8B57;
+        border:2px solid #2E8B57;padding:4px 16px;border-radius:6px;display:inline-block;transform:rotate(-2deg);}
+      .receipt-footer{text-align:center;font-size:10px;color:#8A7768;margin-top:10px;}
+    </style></head>
+    <body>${content}</body></html>
+  `);
+  win.document.close();
+  win.print();
+}
+
+function renderPeople(){
+  const grid = document.getElementById('peopleGrid');
+  if(people.length === 0){
+    grid.innerHTML = '<div class="no-people">Add people to start splitting the order.</div>';
+    return;
+  }
+  grid.innerHTML = people.map(p => {
+    const items = cart.filter(c => c.person === p);
+    const amt = personAmount(p);
+    const cal = personCalories(p);
+    const isOrganizer = p === ORGANIZER;
+    const state = payState[p]?.status || 'unpaid';
+    const calPct = Math.min(100, (cal / CALORIE_BUDGET) * 100);
+    const calClass = cal < CALORIE_BUDGET*0.6 ? 'green' : (cal < CALORIE_BUDGET ? 'yellow' : 'red');
+    const itemsLine = items.length
+      ? items.map(i=>`<b>${i.item}</b> (₹${i.price}, ${i.cal}kcal)`).join(', ')
+      : 'No items added yet';
+
+    let statusTagHtml, buttonHtml, paidTimeHtml = '';
+
+    if(isOrganizer){
+      statusTagHtml = billPaidByOrganizer
+        ? `<div class="status-tag paid">Paid Swiggy</div>`
+        : `<div class="status-tag unpaid">Organiser</div>`;
+      buttonHtml = billPaidByOrganizer
+        ? `<button class="pay-btn paid-btn" disabled>✓ You paid the full bill</button>`
+        : `<button class="pay-btn requested-btn" disabled>Use the button above to pay Swiggy</button>`;
+      if(billPaidByOrganizer) paidTimeHtml = `<div class="paid-time">Paid at ${billPaidTime}</div>`;
+    } else if(state === 'paid'){
+      statusTagHtml = `<div class="status-tag paid">Paid you back</div>`;
+      buttonHtml = `<button class="pay-btn paid-btn" disabled>✓ Received from ${p}</button>`;
+      paidTimeHtml = `<div class="paid-time">Paid at ${payState[p].time}</div>`;
+    } else if(state === 'qr_sent'){
+      statusTagHtml = `<div class="status-tag unpaid">QR Sent</div>`;
+      buttonHtml = `<button class="pay-btn requested-btn" disabled><span class="dot-pulse"></span> QR sent — waiting for payment…</button>`;
+    } else if(!billPaidByOrganizer){
+      statusTagHtml = `<div class="status-tag unpaid">Owes you</div>`;
+      buttonHtml = `<button class="pay-btn requested-btn" disabled>Pay the full bill first ↑</button>`;
+    } else {
+      statusTagHtml = `<div class="status-tag unpaid">Owes you</div>`;
+      buttonHtml = `<button class="pay-btn to-pay" onclick="sendQR('${p}')">📲 Send QR</button>`;
+    }
+
+    return `
+      <div class="person-card ${state==='paid' || (isOrganizer && billPaidByOrganizer) ?'paid':''}">
+        <div class="person-top">
+          <div class="pname">${p}${isOrganizer ? ' (you)' : ''}</div>
+          ${statusTagHtml}
+        </div>
+        <div class="pitems">${itemsLine}</div>
+
+        <div class="calbar-wrap">
+          <div class="calbar-label"><span>Calories</span><span>${cal} / ${CALORIE_BUDGET} kcal</span></div>
+          <div class="calbar-track"><div class="calbar-fill ${calClass}" style="width:${calPct}%"></div></div>
+        </div>
+
+        <div class="pmoney">
+          <div>
+            <div class="amtlab">${isOrganizer ? 'Their share' : 'Owes you'}</div>
+            <div class="amt">₹${amt.toFixed(0)}</div>
+          </div>
+        </div>
+        ${buttonHtml}
+        ${paidTimeHtml}
+        ${!isOrganizer && billPaidByOrganizer ? (() => {
+          const removed = removedAfterPayment[p] || [];
+          const removedAmt = removed.reduce((s,i)=>s+i.price,0);
+          const pbDone = paybackState[p]?.paid;
+          const removedBanner = removed.length ? `
+            <div class="removed-alert">
+              <div class="ra-title">⚠️ Items removed after payment</div>
+              ${removed.map(r=>`<div class="ra-item"><span>${r.item}</span><span>−₹${r.price}</span></div>`).join('')}
+              <div class="ra-total"><span>Owe back to ${p}</span><span>₹${removedAmt}</span></div>
+              <button class="${pbDone ? 'payback-btn done' : 'payback-btn'}"
+                onclick="${pbDone ? '' : `payBackPerson('${p}')`}"
+                ${pbDone ? 'disabled' : ''}>
+                ${pbDone ? `✓ ₹${removedAmt} paid back to ${p} at ${paybackState[p].time}` : `💸 Pay ₹${removedAmt} back to ${p}`}
+              </button>
+            </div>
+          ` : '';
+          const items = cart.filter(c => c.person === p);
+          const refundRow = items.length > 0 ? `
+            <div class="refund-row">
+              <button class="refund-btn" onclick="openRefundModal('${p}')">↩ Refund / Settle item</button>
+              ${refundState[p] ? `<button class="refund-done-btn" onclick="showReceipt('${p}', refundState['${p}'].refundedItems, refundState['${p}'].refundAmt, refundState['${p}'].reason, refundState['${p}'].time, refundState['${p}'].date, refundState['${p}'].refId)">🧾 View Receipt</button>` : ''}
+            </div>
+            ${refundState[p] ? `<div class="refunded-tag">↩ ₹${refundState[p].refundAmt} refunded · ${refundState[p].refundedItems.map(i=>i.item).join(', ')}</div>` : ''}
+          ` : (removed.length ? `
+            <div class="refund-row">
+              ${refundState[p] ? `<button class="refund-done-btn" onclick="showReceipt('${p}', refundState['${p}'].refundedItems, refundState['${p}'].refundAmt, refundState['${p}'].reason, refundState['${p}'].time, refundState['${p}'].date, refundState['${p}'].refId)">🧾 View Receipt</button>` : ''}
+            </div>
+          ` : '');
+          return removedBanner + refundRow;
+        })() : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+init();
+</script>
+
+
+
+<!-- Firebase SDK — works in Chrome from file:// -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════
+   SPLITPLATE — FIREBASE COMPAT SDK
+   Works from Chrome file:// — just open via Ctrl+O
+═══════════════════════════════════════════════════════ */
+
+const _fbConfig = {
+  apiKey:            "AIzaSyD7Jmssw6_DB2nCGzzltzhGyGVCBOMPLcw",
+  authDomain:        "splitplat.firebaseapp.com",
+  projectId:         "splitplat",
+  storageBucket:     "splitplat.firebasestorage.app",
+  messagingSenderId: "964172883823",
+  appId:             "1:964172883823:web:b0a56c31d5fdb1fbac6a9a"
+};
+
+var db = null;
+var currentUser = null;
+var currentOrderId = 'order-' + Date.now();
+var _fbSaveTimer = null;
+
+// Init Firebase — try/catch so app never crashes if CDN fails
+try {
+  if(!firebase.apps.length) firebase.initializeApp(_fbConfig);
+  db = firebase.firestore();
+  console.log('✅ Firebase SDK ready — project: splitplat');
+} catch(e){
+  console.error('❌ Firebase init failed:', e.message);
+}
+
+function emailKey(e){ return e.toLowerCase().trim().replace(/\./g,'_').replace(/@/g,'_at_'); }
+function showErr(eId,mId,msg){ const e=document.getElementById(eId),m=document.getElementById(mId); if(m)m.textContent=msg;else if(e)e.innerHTML='⚠️ &nbsp;'+msg; if(e)e.style.display='flex'; }
+function hideErr(id){ const e=document.getElementById(id); if(e)e.style.display='none'; }
+function setBtn(id,loading,label){ const b=document.getElementById(id); if(b){b.disabled=loading;b.textContent=label;} }
+
+/* ══ SIGN IN ══ */
+async function doSignIn(){
+  hideErr('siError');
+  const email=(document.getElementById('siEmail')?.value||'').trim();
+  const pass =(document.getElementById('siPassword')?.value||'');
+  if(!email){showErr('siError','siErrorMsg','Please enter your email');return;}
+  if(!pass) {showErr('siError','siErrorMsg','Please enter your password');return;}
+  if(!db){showErr('siError','siErrorMsg','Firebase not loaded — open in Chrome via Ctrl+O');return;}
+  setBtn('siBtn',true,'Checking…');
+  try {
+    const snap = await db.collection('users').doc(emailKey(email)).get();
+    if(!snap.exists){showErr('siError','siErrorMsg','❌ User not found — please sign up first');setBtn('siBtn',false,'Sign In →');return;}
+    const data = snap.data();
+    if(data.password!==pass){showErr('siError','siErrorMsg','❌ Incorrect password — try again');setBtn('siBtn',false,'Sign In →');return;}
+    await db.collection('users').doc(emailKey(email)).update({lastLogin:new Date().toISOString()});
+    currentUser={name:data.name,email:data.email,uid:emailKey(email)};
+    window._currentUser=currentUser;
+    console.log('✅ Signed in:',currentUser.name);
+    goHome(currentUser);
+    setTimeout(()=>window.saveToFirebase?.(),2000);
+  } catch(e){showErr('siError','siErrorMsg','Error: '+e.message);console.error(e);setBtn('siBtn',false,'Sign In →');}
+}
+
+/* ══ SIGN UP ══ */
+async function doSignUp(){
+  hideErr('suError');
+  const name =(document.getElementById('suName')?.value||'').trim();
+  const email=(document.getElementById('suEmail')?.value||'').trim();
+  const pass =(document.getElementById('suPassword')?.value||'');
+  if(!name) {showErr('suError','suErrorMsg','Please enter your name');return;}
+  if(!email){showErr('suError','suErrorMsg','Please enter your email');return;}
+  if(!pass) {showErr('suError','suErrorMsg','Please enter a password');return;}
+  if(pass.length<6){showErr('suError','suErrorMsg','Password needs at least 6 characters');return;}
+  if(!db){showErr('suError','suErrorMsg','Firebase not loaded — open in Chrome via Ctrl+O');return;}
+  setBtn('suBtn',true,'Creating account…');
+  try {
+    const snap = await db.collection('users').doc(emailKey(email)).get();
+    if(snap.exists){showErr('suError','suErrorMsg','❌ Email already registered — sign in instead');setBtn('suBtn',false,'Create Account →');return;}
+    await db.collection('users').doc(emailKey(email)).set({name,email:email.toLowerCase(),password:pass,uid:emailKey(email),createdAt:new Date().toISOString(),lastLogin:new Date().toISOString()});
+    currentUser={name,email:email.toLowerCase(),uid:emailKey(email)};
+    window._currentUser=currentUser;
+    console.log('✅ Signed up:',name);
+    showFbToast('🎉 Welcome, '+name+'!');
+    goHome(currentUser);
+    setTimeout(()=>window.saveToFirebase?.(),2000);
+  } catch(e){showErr('suError','suErrorMsg','Error: '+e.message);console.error(e);setBtn('suBtn',false,'Create Account →');}
+}
+
+/* ══ FETCH PERSON ══ */
+window.fetchPersonByEmail=async function(email){
+  if(!db) return null;
+  try{const s=await db.collection('users').doc(emailKey(email)).get();return s.exists?s.data():null;}
+  catch(e){return null;}
+};
+
+/* ══ GO HOME ══ */
+function goHome(user){
+  document.getElementById('screenLogin').style.display='none';
+  document.getElementById('screenHome').style.display='block';
+  document.getElementById('screenMenu').style.display='none';
+  document.getElementById('screenCart').style.display='none';
+  renderUserPill(user);
+  window.scrollTo({top:0,behavior:'smooth'});
+  // silently delete old root orders collection
+  if(db){db.collection('orders').get().then(s=>{s.forEach(d=>d.ref.delete());}).catch(()=>{});}
+  function tryRender(n){
+    const list=document.getElementById('restoList');
+    if(!list){if(n>0)setTimeout(()=>tryRender(n-1),100);return;}
+    if(typeof renderRestoCards==='function')renderRestoCards();
+    if(typeof initOffersBanner==='function')initOffersBanner();
+    if(!list.children.length&&n>0)setTimeout(()=>tryRender(n-1),150);
+  }
+  setTimeout(()=>tryRender(5),50);
+  showFbToast('👋 Welcome, '+user.name+'!');
+}
+
+/* ══ SIGN OUT ══ */
+window.doSignOut=function(){
+  currentUser=null;window._currentUser=null;
+  ['userPillHome','userPillMenu','userPillCart'].forEach(id=>{const el=document.getElementById(id);if(el){el.innerHTML='';el.style.display='none';}});
+  ['screenHome','screenMenu','screenCart'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  document.getElementById('screenLogin').style.display='block';
+  ['siEmail','siPassword','suName','suEmail','suPassword'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  showFbToast('👋 Signed out');
+};
+
+/* ══ USER PILL ══ */
+function renderUserPill(user){
+  const initials=user.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  const html=`<div class="user-pill" onclick="showProfile()" title="Profile"><div class="user-avatar">${initials}</div><div class="user-name">${user.name}</div><div class="user-logout">👤</div></div>`;
+  ['userPillHome','userPillMenu','userPillCart'].forEach(id=>{const el=document.getElementById(id);if(el){el.innerHTML=html;el.style.display='block';}});
+}
+
+/* ══ SWITCH TAB ══ */
+function doSwitchTab(tab){
+  document.getElementById('formSignin').style.display=tab==='signin'?'block':'none';
+  document.getElementById('formSignup').style.display=tab==='signup'?'block':'none';
+  document.getElementById('tabSignin').classList.toggle('active',tab==='signin');
+  document.getElementById('tabSignup').classList.toggle('active',tab==='signup');
+  const t=document.querySelector('.lr-title'),s=document.querySelector('.lr-sub');
+  if(t)t.textContent=tab==='signin'?'Welcome back':'Create account';
+  if(s)s.textContent=tab==='signin'?'Sign in to your SplitPlate account':"Join SplitPlate — it's free";
+  hideErr('siError');hideErr('suError');
+}
+
+/* ══ SAVE ORDER ══ */
+window.saveToFirebase=function(){
+  if(!currentUser||!db){console.log('saveToFirebase: skipped');return;}
+  clearTimeout(_fbSaveTimer);
+  _fbSaveTimer=setTimeout(async()=>{
+    try {
+      const _cart=typeof cart!=='undefined'?cart:[];
+      const _people=typeof people!=='undefined'?people:[];
+      const _payState=typeof payState!=='undefined'?payState:{};
+      const _refunds=typeof refundState!=='undefined'?refundState:{};
+      const _paid=typeof billPaidByOrganizer!=='undefined'?billPaidByOrganizer:false;
+      const _state=typeof orderState!=='undefined'?orderState:'building';
+      const subtotal=_cart.reduce((s,c)=>s+c.price,0);
+      const grand=parseFloat((subtotal+40+8+subtotal*0.05).toFixed(2));
+      const restos=[...new Set(_cart.map(c=>c.resto).filter(Boolean))];
+      const perPerson={};
+      _people.forEach(p=>{
+        const items=_cart.filter(c=>c.person===p);
+        const iTotal=items.reduce((s,c)=>s+c.price,0);
+        const cal=items.reduce((s,c)=>s+c.cal,0);
+        const ord=_people.filter(p2=>_cart.some(c=>c.person===p2)).length||1;
+        const fees=parseFloat(((40+8)/ord).toFixed(2));
+        const tax=parseFloat((iTotal*0.05).toFixed(2));
+        const total=parseFloat((iTotal+fees+tax).toFixed(2));
+        perPerson[p]={items:items.map(i=>({item:i.item,qty:i.qty||1,price:i.price,cal:i.cal||0,resto:i.resto||''})),itemTotal:iTotal,sharedFees:fees,tax,totalOwed:total,totalCalories:cal,paymentStatus:_payState[p]?.status||'unpaid',paidAt:_payState[p]?.time||null};
+      });
+      const byResto={};
+      _cart.forEach(c=>{const k=c.resto||'Custom';if(!byResto[k])byResto[k]={items:[],subtotal:0};byResto[k].items.push({item:c.item,qty:c.qty||1,price:c.price,person:c.person});byResto[k].subtotal+=c.price;});
+      await db.collection('users').doc(currentUser.uid).collection('orders').doc(currentOrderId).set({
+        orderId:currentOrderId,userEmail:currentUser.email,userName:currentUser.name,
+        updatedAt:new Date().toISOString(),orderState:_state,
+        subtotal,deliveryFee:40,platformFee:8,tax:parseFloat((subtotal*0.05).toFixed(2)),grandTotal:grand,
+        itemCount:_cart.length,billPaidByOrganizer:_paid,billPaidTime:typeof billPaidTime!=='undefined'?billPaidTime:null,
+        restaurants:restos,restaurantName:restos.join(' + ')||(typeof selectedRestoId!=='undefined'?selectedRestoId:'Unknown'),
+        cartByRestaurant:byResto,cart:JSON.parse(JSON.stringify(_cart)),
+        people:_people,perPersonDetails:perPerson,
+        payState:JSON.parse(JSON.stringify(_payState)),refundState:JSON.parse(JSON.stringify(_refunds)),
+      });
+      console.log('✅ Firebase save OK');
+      showFbToast('🔥 Synced');
+    } catch(e){console.error('❌ Firebase save:',e.message);showFbToast('⚠️ '+e.message);}
+  },1000);
+};
+
+window.saveFinalOrder=async function(){
+  if(!currentUser||!db)return;
+  try{await db.collection('users').doc(currentUser.uid).collection('orders').doc(currentOrderId).update({orderState:'sent',confirmedAt:new Date().toISOString()});showFbToast('✅ Confirmed!');}catch(e){console.error(e);}
+};
+
+/* ══ PAST ORDERS ══ */
+window.showPastOrders=async function(){
+  if(!currentUser){showFbToast('Please sign in first');return;}
+  if(!db){showFbToast('Firebase not loaded');return;}
+  try{
+    const snap=await db.collection('users').doc(currentUser.uid).collection('orders').orderBy('updatedAt','desc').limit(20).get();
+    const orders=[];snap.forEach(d=>orders.push(d.data()));
+    showOrdersModal(orders);
+  }catch(e){showFbToast('❌ '+e.message);}
+};
+
+function showOrdersModal(orders){
+  const ex=document.getElementById('ordersModal');if(ex)ex.remove();
+  const spent=orders.filter(o=>o.billPaidByOrganizer).reduce((s,o)=>s+(o.grandTotal||0),0);
+  const ov=document.createElement('div');ov.id='ordersModal';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;';
+  ov.innerHTML=`<div style="background:#0d0d1a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;width:100%;max-width:540px;max-height:85vh;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.7);">
+    <div style="padding:20px 24px 14px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-family:Georgia,serif;font-size:19px;font-weight:700;color:#fff;">📦 Past Orders</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:3px;">${orders.length} orders · ₹${spent.toFixed(0)} paid</div></div>
+      <button onclick="document.getElementById('ordersModal').remove()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div style="overflow-y:auto;max-height:calc(85vh - 90px);padding:14px 20px 20px;">
+      ${orders.length===0?'<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;">No orders yet 🍽️</div>':
+        orders.map(o=>`<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div><div style="font-weight:700;color:#fff;font-size:14px;">${o.restaurantName||'—'}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px;">${o.updatedAt?new Date(o.updatedAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>
+            <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">${(o.people||[]).map(p=>`<span style="background:rgba(255,106,43,0.1);color:#ff8c5a;font-size:10px;padding:2px 7px;border-radius:20px;">${p}</span>`).join('')}</div></div>
+            <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#FF6A2B;">₹${(o.grandTotal||0).toFixed(0)}</div>
+          </div></div>`).join('')}
+    </div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+}
+
+/* ══ NEW ORDER ══ */
+window.startNewOrder=function(){
+  cart=[];payState={};refundState={};removedAfterPayment={};paybackState={};billPaidByOrganizer=false;billPaidTime=null;
+  selectedRestoId=null;orderState='unpaid';bufferSecsLeft=120;sureUnlocked=true;bufferRemovals=[];
+  clearInterval(bufferInterval);currentOrderId='order-'+Date.now();people=['You'];
+  document.getElementById('screenHome').style.display='block';
+  document.getElementById('screenMenu').style.display='none';
+  document.getElementById('screenCart').style.display='none';
+  renderRestoCards();renderPersonSelect();renderMenu();renderCart();renderBill();renderPeople();renderCalStrip();renderOrganizerBar();recalcTotals();initOffersBanner();
+  const buf=document.getElementById('bufferSection');const sup=document.getElementById('supportSection');
+  if(buf)buf.style.display='none';if(sup){sup.style.display='none';sup.dataset.rendered='';}
+  showFbToast('🆕 New order started!');
+};
+
+/* ══ CLEANUP ══ */
+window.cleanupAccounts=async function(){
+  if(!db){showFbToast('Firebase not loaded');return;}
+  const keepKeys=['jishu_at_gmail_com','anya_at_gmail_com'];
+  try{
+    showFbToast('🧹 Cleaning…');
+    const rootOrders=await db.collection('orders').get();
+    rootOrders.forEach(d=>d.ref.delete());
+    const users=await db.collection('users').get();
+    let deleted=0;
+    for(const u of users.docs){
+      if(!keepKeys.includes(u.id)){
+        const ords=await db.collection('users').doc(u.id).collection('orders').get();
+        ords.forEach(o=>o.ref.delete());
+        await u.ref.delete();deleted++;
+      }
+    }
+    showFbToast(`✅ Removed ${deleted} accounts + ${rootOrders.size} legacy orders`);
+  }catch(e){showFbToast('❌ '+e.message);console.error(e);}
+};
+
+/* ══ TOAST ══ */
+function showFbToast(msg){
+  let t=document.getElementById('fb-toast');
+  if(!t){t=document.createElement('div');t.id='fb-toast';t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;background:rgba(15,15,25,0.96);color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(16px);transition:opacity .4s;opacity:0;box-shadow:0 4px 24px rgba(0,0,0,0.5);';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(()=>t.style.opacity='0',3000);
+}
+window.showFbToast=showFbToast;
+
+/* ══ WIRE BUTTONS ══ */
+function wireButtons(){
+  const g=id=>document.getElementById(id);
+  g('siBtn')     ?.addEventListener('click',doSignIn);
+  g('suBtn')     ?.addEventListener('click',doSignUp);
+  g('tabSignin') ?.addEventListener('click',()=>doSwitchTab('signin'));
+  g('tabSignup') ?.addEventListener('click',()=>doSwitchTab('signup'));
+  g('siEmail')   ?.addEventListener('keydown',e=>{if(e.key==='Enter')g('siPassword')?.focus();});
+  g('siPassword')?.addEventListener('keydown',e=>{if(e.key==='Enter')doSignIn();});
+  g('suName')    ?.addEventListener('keydown',e=>{if(e.key==='Enter')g('suEmail')?.focus();});
+  g('suEmail')   ?.addEventListener('keydown',e=>{if(e.key==='Enter')g('suPassword')?.focus();});
+  g('suPassword')?.addEventListener('keydown',e=>{if(e.key==='Enter')doSignUp();});
+  document.querySelectorAll('.lbtn-google').forEach(btn=>{btn.addEventListener('click',()=>showFbToast('Use email/password login'));});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wireButtons);
+else wireButtons();
+</script>
+</body>
+</html>
