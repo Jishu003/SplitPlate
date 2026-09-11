@@ -10,7 +10,6 @@ Built as a CIA III project for B.Sc. Economics & Data Science at Christ (Deemed 
 
 ## 🚀 How to Run
 
-Open any file directly in Chrome (`Ctrl+O`):
 
 | File | Who uses it | Login |
 |---|---|---|
@@ -18,7 +17,6 @@ Open any file directly in Chrome (`Ctrl+O`):
 | `frontend/restaurant-dashboard.html` | Restaurant owners | Select restaurant from dropdown |
 | `frontend/splitplate-analytics.html` | SplitPlate business team | Password: `splitplate2025` |
 
-> **Important:** Open files in **Google Chrome** via `Ctrl+O`. Firebase requires internet to sync.
 
 ---
 
