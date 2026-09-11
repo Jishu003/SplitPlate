@@ -114,7 +114,7 @@ splitplate/
 
 | Name | Role | Responsibilities |
 |---|---|---|
-| **Upanshu** | Lead Developer & Architect | Firebase backend, authentication, bill-split algorithm, system architecture, deployment |
+| **Upanshu** | Architect | Firebase backend, authentication, bill-split algorithm, system architecture, deployment |
 | **Aanya** | Frontend Developer | UI/UX design, menu system, cart screen, dark theme, CSS animations |
 | **Vibhi** | Frontend Developer | Restaurant list, offers banner, calorie tracker, settings & themes, accessibility |
 | **Agastya** | Backend & Analytics | Database schema, analytics dashboards, Firestore queries, data aggregation |
