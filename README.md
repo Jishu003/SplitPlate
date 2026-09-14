@@ -109,12 +109,14 @@ splitplate/
 ---
 
 👨‍💻 Team
+SplitPlate is developed by:
 
+Aanya Agarwal
+Agastya Pallavi Shethia
+Akankshya Pradhan
+Upanshu Sil
+Vibhi Maheshwari
 
-
-**Course:** B.Sc. Economics with Data Science
-**Institution:** Christ (Deemed to be University) Bannerghatta Road Campus, Bangalore
-**Assessment:** CIA III — Digital Business Systems ECD223-3
 
 ---
 
