@@ -109,6 +109,7 @@ splitplate/
 ---
 
 👨‍💻 Team
+
 SplitPlate is developed by:
 
 Aanya Agarwal
