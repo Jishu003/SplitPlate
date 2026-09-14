@@ -1,4 +1,4 @@
-<img width="2172" height="724" alt="image" src="https://github.com/user-attachments/assets/84ef0aa0-8303-4a79-ab32-394aec15413e" />
+<img width="2172" height="724" alt="image" src="https://github.com/user-attachments/assets/a3c07318-e09a-4344-9363-e89ba5aac582" />
 
 🍽️ SplitPlate — Group Order, Sorted
 
