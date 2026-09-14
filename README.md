@@ -6,7 +6,7 @@
 
 SplitPlate fixes the biggest problem with group food ordering that is figuring out who owes what to each other. Order from multiple restaurants in one session, tag each item to a person, and get automatic bill splits with per-person payment tracking.
 
----
+--
 
 🚀 How to Run
 
