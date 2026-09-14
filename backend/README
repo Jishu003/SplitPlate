@@ -1,0 +1,94 @@
+# SplitPlate — Backend (Firebase)
+
+SplitPlate uses **Firebase Firestore** as its backend — a serverless NoSQL cloud database. No custom server is needed.
+
+---
+
+## Firebase Project Details
+
+| Field | Value |
+|---|---|
+| Project ID | `splitplat` |
+| Console | https://console.firebase.google.com/project/splitplat |
+| Database | Cloud Firestore (default) |
+
+---
+
+## Setup — Firestore Rules
+
+Go to **Firebase Console → Firestore Database → Rules tab** → paste this → click **Publish**:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
+
+---
+
+## Database Structure
+
+```
+Firestore
+└── users/
+    └── {emailKey}/
+        ├── uid
+        ├── name
+        ├── email
+        ├── password       ← SHA-256 hashed
+        ├── createdAt
+        ├── lastLogin
+        └── orders/
+            └── {orderId}/
+                ├── grandTotal
+                ├── restaurants[]
+                ├── cart[]
+                ├── people[]
+                ├── perPersonDetails{}
+                ├── payState{}
+                ├── refundState{}
+                └── updatedAt
+```
+
+---
+
+## Email Key Convention
+
+Firebase document IDs cannot contain `.` or `@` so emails are converted:
+
+```
+jishu@gmail.com  →  jishu_at_gmail_com
+anya@gmail.com   →  anya_at_gmail_com
+```
+
+---
+
+## Security
+
+| Feature | Implementation |
+|---|---|
+| Password storage | SHA-256 hashed using `crypto.subtle.digest` |
+| Input sanitisation | `sanitise()` escapes `<>` before innerHTML |
+| Firestore rules | Open for demo — restrict per user in production |
+| Debounced writes | 1000ms debounce prevents Firebase quota exhaustion |
+
+---
+
+## Files in This Folder
+
+| File | Purpose |
+|---|---|
+| `firestore.rules` | Firestore security rules — paste in Firebase Console |
+| `firestore.indexes.json` | Composite indexes for dashboard queries |
+| `firebase.json` | Firebase hosting configuration |
+| `README.md` | This file |
+
+---
+
+*SplitPlate · CIA III · Christ (Deemed to be University) · 2025*
+*Team: Upanshu · Aanya · Vibhi · Agastya · Akankshya*
