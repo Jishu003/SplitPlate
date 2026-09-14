@@ -3,7 +3,7 @@
 
 > **One cart. Separate bills. Separate plates.**
 
-SplitPlate fixes the biggest problem with group food ordering — figuring out who owes what. Order from multiple restaurants in one session, tag each item to a person, and get automatic bill splits with per-person payment tracking.
+SplitPlate fixes the biggest problem with group food ordering that is figuring out who owes what. Order from multiple restaurants in one session, tag each item to a person, and get automatic bill splits with per-person payment tracking.
 
 ---
 
