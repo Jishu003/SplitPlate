@@ -5,8 +5,6 @@
 
 SplitPlate fixes the biggest problem with group food ordering — figuring out who owes what. Order from multiple restaurants in one session, tag each item to a person, and get automatic bill splits with per-person payment tracking.
 
-Built as a CIA III project for B.Sc. Economics & Data Science at Christ (Deemed to be University), Bangalore — 2025.
-
 ---
 
 🚀 How to Run
