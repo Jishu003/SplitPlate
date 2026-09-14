@@ -21,7 +21,7 @@ Built as a CIA III project for B.Sc. Economics & Data Science at Christ (Deemed 
 
 ---
 
-## ✨ Features
+✨ Features
 
 ### Customer App
 - 🍽️ **15 restaurants** with mood-based menu filter (Hungry / Lazy / Healthy / Sweet)
@@ -36,7 +36,7 @@ Built as a CIA III project for B.Sc. Economics & Data Science at Christ (Deemed 
 - 🎨 **3 themes** — Dark, Light, Colour Blind (Deuteranopia-optimised)
 - 🔐 **Firebase auth** — sign up/sign in with email + password
 
-### Restaurant Dashboard
+Restaurant Dashboard
 - 📊 Revenue and order analytics per restaurant
 - 🍽️ Top items by order count with visual bar charts
 - 💸 Revenue breakdown by item (SVG donut chart)
@@ -44,7 +44,7 @@ Built as a CIA III project for B.Sc. Economics & Data Science at Christ (Deemed 
 - 📈 Orders over time timeline
 - 📦 Recent orders table with customer details
 
-### Business Analytics
+Business Analytics
 - 💰 Platform-wide GMV (Gross Merchandise Value)
 - 👥 User registry with spend tracking
 - 🏪 Active restaurant performance across all 15
@@ -54,7 +54,7 @@ Built as a CIA III project for B.Sc. Economics & Data Science at Christ (Deemed 
 
 ---
 
-## 🗂️ Project Structure
+🗂️ Project Structure
 
 ```
 splitplate/
@@ -80,7 +80,7 @@ splitplate/
 
 ---
 
-## 🛠️ Tech Stack
+🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -93,7 +93,7 @@ splitplate/
 
 ---
 
-## 📊 What Makes SplitPlate Different from Swiggy
+📊 What Makes SplitPlate Different from Swiggy
 
 | Feature | Swiggy | SplitPlate |
 |---|---|---|
@@ -109,7 +109,7 @@ splitplate/
 
 ---
 
-## 👨‍💻 Team
+👨‍💻 Team
 
 | Name | Role | Responsibilities |
 |---|---|---|
