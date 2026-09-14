@@ -112,9 +112,13 @@ splitplate/
 SplitPlate is developed by:
 
 Aanya Agarwal
+
 Agastya Pallavi Shethia
+
 Akankshya Pradhan
+
 Upanshu Sil
+
 Vibhi Maheshwari
 
 
