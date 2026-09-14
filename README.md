@@ -1,3 +1,4 @@
+<img width="2172" height="724" alt="image" src="https://github.com/user-attachments/assets/84ef0aa0-8303-4a79-ab32-394aec15413e" />
 # 🍽️ SplitPlate — Group Order, Sorted
 
 > **One cart. Separate bills. Separate plates.**
