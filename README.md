@@ -23,7 +23,7 @@ SplitPlate fixes the biggest problem with group food ordering that is figuring o
 ✨ Features
 
 ### Customer App
-- 🍽️ **15 restaurants** with mood-based menu filter (Hungry / Lazy / Healthy / Sweet)
+- 🍽️ **15 restaurants** with menu filter based on moods (Hungry / Lazy / Healthy / Sweet)
 - 👥 **Per-person item tagging** — each item assigned to a specific person
 - ➕ **Quantity control** — `[ − | qty | + ]` pill box for every cart item
 - 💸 **Auto bill split** — each person's share calculated with shared fees + tax
