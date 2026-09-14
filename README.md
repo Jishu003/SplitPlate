@@ -110,13 +110,7 @@ splitplate/
 
 👨‍💻 Team
 
-| Name | Role | Responsibilities |
-|---|---|---|
-| **Upanshu** | Architect | Firebase backend, authentication, bill-split algorithm, system architecture, deployment |
-| **Aanya** | Frontend Developer | UI/UX design, menu system, cart screen, dark theme, CSS animations |
-| **Vibhi** | Frontend Developer | Restaurant list, offers banner, calorie tracker, settings & themes, accessibility |
-| **Agastya** | Backend & Analytics | Database schema, analytics dashboards, Firestore queries, data aggregation |
-| **Akankshya** | Full Stack & QA | Restaurant dashboard, profile modal, security, documentation, testing |
+
 
 **Course:** B.Sc. Economics with Data Science
 **Institution:** Christ (Deemed to be University) Bannerghatta Road Campus, Bangalore
