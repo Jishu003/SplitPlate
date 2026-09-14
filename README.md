@@ -118,9 +118,9 @@ splitplate/
 | **Agastya** | Backend & Analytics | Database schema, analytics dashboards, Firestore queries, data aggregation |
 | **Akankshya** | Full Stack & QA | Restaurant dashboard, profile modal, security, documentation, testing |
 
-**Course:** B.Sc. Economics & Data Science
-**Institution:** Christ (Deemed to be University), Bangalore
-**Assessment:** CIA III — Digital Business Systems ECD223-3 (2025)
+**Course:** B.Sc. Economics with Data Science
+**Institution:** Christ (Deemed to be University) Bannerghatta Road Campus, Bangalore
+**Assessment:** CIA III — Digital Business Systems ECD223-3
 
 ---
 
