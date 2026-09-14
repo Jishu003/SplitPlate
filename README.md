@@ -1,6 +1,7 @@
 <img width="2172" height="724" alt="image" src="https://github.com/user-attachments/assets/a3c07318-e09a-4344-9363-e89ba5aac582" />
 
 🍽️ SplitPlate — Group Order, Sorted
+> **One cart. Separate bills. Separate plates.**
 
 
 SplitPlate fixes the biggest problem with group food ordering that is figuring out who owes what. Order from multiple restaurants in one session, tag each item to a person, and get automatic bill splits with per-person payment tracking.
